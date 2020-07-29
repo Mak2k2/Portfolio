@@ -1,0 +1,26 @@
+{
+  "name": "soket",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.16.2",
+    "jquery": "^3.3.1",
+    "jquery-ui": "^1.12.1",
+    "socket.io": "^2.0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/scotch-io/node-booklet-code.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "description": "## To Run:",
+  "bugs": {
+    "url": "https://github.com/scotch-io/node-booklet-code/issues"
+  },
+  "homepage": "https://github.com/scotch-io/node-booklet-code#readme",
+  "version": "1.0.0",
+  "devDependencies": {},
+  "author": ""
+}
