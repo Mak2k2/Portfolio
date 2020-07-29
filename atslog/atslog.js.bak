@@ -1,0 +1,53 @@
+var net = require('net');
+var fs = require("fs");
+
+var timeLog;
+
+function nowTime() {
+  var now = new Date();
+  var month = "";
+  var year = "";
+  var time = "";
+  var day = "";
+  month = now.getMonth() + 1;
+  if (month < 10) month = "0" + (month);
+  day = now.getDate();
+  if (day < 10) day = "0" + day;
+  year = "" + now.getFullYear();
+  year = year.substring(2, 4);
+  time = day + "." + month + "." + year;
+  return(time);
+}
+
+var client = net.connect({
+  host:'192.168.3.77',
+  port: 22
+},
+
+function() { //'connect' listener
+  client.on('error', function(err) {
+    if (err) {
+      console.log("handled error");
+      console.log(err);
+    }
+  });
+  console.log('client connected');
+  client.on('data', function(data) {
+    var logData = data.toString();
+    console.log(logData);
+    var newTime = nowTime();
+    setTimeout(function() {
+      if (timeLog != newTime) {
+        logData = "";
+        timeLog = newTime;
+        console.log("Дата изменилась на " + timeLog);
+      }
+        fs.appendFileSync("/home/aster/nodescript/atslog/atslog/" + timeLog, logData, "utf8");
+    }, 100);
+});
+});
+//;});
+
+client.on('end', function() {
+  console.log('client disconnected');
+});

@@ -1,0 +1,19 @@
+{
+  "name": "atslog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "atslog.js",
+  "dependencies": {
+    "net": "^1.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sbor",
+    "logov"
+  ],
+  "author": "Mak2k2",
+  "license": "ISC"
+}
