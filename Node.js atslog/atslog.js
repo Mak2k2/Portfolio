@@ -37,7 +37,7 @@ function portConnect() {
         timeLog = newTime;
         console.log("Дата изменилась на " + timeLog);
       }
-	    fs.appendFileSync("/home/aster/nodescript/atslog/atslog/" + timeLog, logData, "utf8");
+	    fs.appendFileSync("/atslog/" + timeLog, logData, "utf8");
     }, 100);
   });
 
