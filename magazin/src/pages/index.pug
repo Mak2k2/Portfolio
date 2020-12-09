@@ -1,0 +1,92 @@
+//- index.pug
+doctype html
+html(lang="ru")
+	head
+		include head.pug
+	body
+		include header.pug
+		div.middle
+			div.cat
+				div.info
+					p 
+						b Фетч
+						|— мультибрендовый магазин модной одежды.
+					p Следим за трендами и часто обновляем ассортимент.
+					p Доставляем по Москве за день, по России — за неделю.
+				div.group
+					h3 
+						a(href="#") Для мужчин
+					p 
+						a(href="#" class="group_link") Верхняя одежда
+					p 
+						a(href="#" class="group_link") Рубашки и поло
+					p
+						a(href="#" class="group_link") Трикотаж
+					p
+						a(href="#" class="group_link") Брюки и джинсы
+					p
+						a(href="#" class="group_link") Бельё и носки
+				div.group
+					h3 
+						a(href="#") Для женщин
+					p 
+						a(href="#" class="group_link") Верхняя одежда
+					p 
+						a(href="#" class="group_link") Рубашки и поло
+					p
+						a(href="#" class="group_link") Трикотаж
+					p
+						a(href="#" class="group_link") Платья и юбки
+					p
+						a(href="#" class="group_link") Бельё и носки
+				div.group
+					h3 
+						a(href="#") Обувь
+					p 
+						a(href="#" class="group_link") Кроссовки и кеды
+					p 
+						a(href="#" class="group_link") Ботинки
+				div.group
+					h3 
+						a(href="#") Аксессуары
+					p 
+						a(href="#" class="group_link") Сумки и рюкзаки
+					p 
+						a(href="#" class="group_link") Часы
+					p
+						a(href="#" class="group_link") Бижутерия
+					p
+						a(href="#" class="group_link") Средства для ухода
+				div.group
+					h3 
+						a(href="#") Скидки
+					p 
+						a(href="#" class="group_link") Летняя распродажа
+					p 
+						a(href="#" class="group_link") Коллекция 2018
+			div.item_top
+				div.item_1
+					h2 
+						a(href="#") лукбук, лето 2019
+					p Стильные образы для тёплых деньков
+					div.item_1_image
+					div.item_2
+						h2 
+							a(href="#") выбор редакции: часы
+						p ТОП-5 лучших предложений по версии администрации Фетч
+				div.item_3
+					h2 
+						a(href="#") новая коллекция adidas Originals
+					p Десять крутейших кроссовок
+					div.item_3_image
+			div.item_bottom 
+				h2 
+					a(href="#") Предзаказ: Maison Margiela Fusion
+				p От 92 000 ₽
+			div.item_bottom_img
+		script(src="assets/scripts/jquery-3.5.1.slim.min.js")
+		script(src="scripts/bundle.js")
+		script(src="assets/scripts/slick.min.js")
+		script(src="assets/scripts/jquery.magnific-popup.min.js")
+		footer.footer
+			include footer.pug	

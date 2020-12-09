@@ -1,0 +1,37 @@
+doctype html
+html(lang="ru")
+	head
+		include head.pug
+	body
+		div.wrapper
+			include menu_light.pug
+			div.about
+				div.about_info
+					h1 О магазине Фетч
+					p В магазине Фетч представлено более 100 ведущих мировых производителей одежды и обуви.
+					p Разнообразие ассортимента обеспечивают товары культовых брендов современности: Barbour, Fred Perry, Norse Projects, Edwin и капсульные коллекции компаний, делающих ставку на эксклюзивность и премиальный статус своей продукции — Stone Island, Polo Ralph Lauren, C.P. Company.
+					p Приобрести последние можно лишь в нескольких торговых точках по всему миру, включая Фетч.
+					p Особый повод для гордости — обширная подборка редких и культовых кроссовок adidas Originals, Nike, New Balance, ASICS, Reebok и другие.
+				div.about_contact
+					div.about_contact_contact
+						div.about_contact_margin
+							h3.address Москва, Тимирязевская, 3
+							div.about_contact
+								p.mail_black
+									a(href="#" class="mail") shop@fetch.ru
+								h3.number 8 800 912-11-42
+								p.call_free Звонок бесплатный
+							div.requisites
+								p ИНН/КПП: 2901152637 / 290101001
+								p ОГРН: 1062901063576
+								p БИК: 041117601, к/с 30101810100000000601
+							div.payment
+								p Расчетный счет: 40702810004000103812 в отделении N8637 Сбербанка России, Архангельск
+							div.dir
+								p Генеральный директор — Василенко Артём Викторович
+		script(src="assets/scripts/jquery-3.5.1.slim.min.js")
+		script(src="scripts/bundle.js")
+		script(src="assets/scripts/slick.min.js")
+		script(src="assets/scripts/jquery.magnific-popup.min.js")
+		footer.footer.null
+			include footer.pug

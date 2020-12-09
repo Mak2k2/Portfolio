@@ -1,0 +1,45 @@
+doctype html
+html(lang="ru")
+	head
+		include head.pug
+	body
+		div.wrapper
+			h1.checkout_header
+				span 
+					a(href="index.html") Фетч 
+				span.dot • 
+				span Оформление заказа
+			div.checkout_item
+				div
+					div.checkout(id="checkout_basket")
+					hr.line
+					div
+					h3.summ 
+						span(id="checkout_summ") 0
+						p.delivery Доставка бесплатно
+				form.form
+					div.mail
+						p Эл. почта
+						input(type="email" placeholder="petrov@yandex.ru")
+						p.message Пришлём чеки и трек-номер
+					div.tel
+						p Телефон
+						input(type="text" placeholder="+7 999 275-12-37")
+						p.message Менеджер позвонит, чтобы подтвердить заказ
+					div.city
+						p Город
+						input(type="text" placeholder="Москва")
+					div.address
+						p Адрес
+						textarea(rows="5" cols="33" placeholder="Тимирязевская, 32, квартира 99, вход со двора")
+					div.form_button
+						div
+							p Бесплатная доставка курьером.
+							p Оплата картой онлайн.
+							a(href="#" id="send_message" class="button_send") Корзина пуста!
+		script(src="assets/scripts/jquery-3.5.1.slim.min.js")
+		script(src="scripts/bundle.js")
+		script(src="assets/scripts/slick.min.js")
+		script(src="assets/scripts/jquery.magnific-popup.min.js")
+		footer.footer_lite
+			include footer_lite.pug

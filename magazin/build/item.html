@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <head>
+      <meta charset="UTF-8">
+      <title>Fetch</title>
+      <link rel="stylesheet" type="text/css" href="styles/style.css">
+      <link rel="stylesheet" type="text/css" href="styles/slick.css">
+      <link rel="stylesheet" type="text/css" href="styles/slick-theme.css">
+      <link rel="stylesheet" type="text/css" href="assets/styles/magnific-popup.css">
+    </head>
+  </head>
+  <body>
+    <div class="wrapper">
+      <ul class="nav light">
+        <li class="fetch"><a href="index.html">фетч</a></li>
+        <li> <a href="#">одежда</a></li>
+        <li> <a href="catalog.html">обувь</a></li>
+        <li> <a href="#">аксессуары</a></li>
+        <li> <a href="#">блог</a></li>
+        <li> <a href="about.html">магазин</a></li>
+        <li> <a href="#">доставка и оплата</a></li>
+        <li class="basket"><span class="icon" id="quantity_item"></span><a href="checkout.html">оформить заказ</a></li>
+      </ul>
+      <div class="item">
+        <div class="item_left">
+          <h1 class="item_header" id="1">Maison Margiela Fusion Low Sneakers
+            <p>Кроссовки</p>
+          </h1>
+          <div class="item_buy">
+            <div class="color">
+              <h4>Цвет</h4>
+              <input checked type="radio" name="color_button" id="color1" value="1">
+              <label for="color1">Белый с розовым</label>
+              <input type="radio" name="color_button" id="color2" value="2">
+              <label for="color2">Белый с зелёным</label>
+            </div>
+            <div class="size">
+              <h4>Размер US</h4>
+              <input checked type="radio" name="size_button" id="size1" value="1">
+              <label for="size1">6</label>
+              <input type="radio" name="size_button" id="size2" value="2">
+              <label for="size2">6,5</label>
+              <input type="radio" name="size_button" id="size3" value="3">
+              <label for="size3">7</label>
+              <input type="radio" name="size_button" id="size4" value="4">
+              <label for="size4">9</label>
+            </div>
+            <div class="table"><a class="show-popup" href="#test-popup" data-effect="mfp-zoom-in">Таблица размеров</a>
+              <div class="white-popup mfp-with-anim mfp-hide" id="test-popup">
+                <button class="popup_close" id="close" type="button"><img loading="lazy" data-src="assets/img/icon-cross-hover.png"></button>
+                <h1>Таблица размеров</h1>
+                <table class="popup_table">
+                  <tr>
+                    <th class="section">US </th>
+                    <td>4</td>
+                    <td>4,5</td>
+                    <td>5</td>
+                    <td>5,5</td>
+                    <td>6</td>
+                    <td>6,5</td>
+                    <td>7</td>
+                    <td>7,5</td>
+                  </tr>
+                  <tr> 
+                    <th class="section">UK</th>
+                    <td>3,5</td>
+                    <td>4</td>
+                    <td>4,5</td>
+                    <td>6</td>
+                    <td>5,5</td>
+                    <td>6</td>
+                    <td>6,5</td>
+                    <td>7</td>
+                  </tr>
+                  <tr>
+                    <th class="section">EU</th>
+                    <td>36</td>
+                    <td>37</td>
+                    <td>38</td>
+                    <td>39</td>
+                    <td>40</td>
+                    <td>41</td>
+                    <td>42</td>
+                    <td>43</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div class="buy">
+              <h3> <a href="#" id="send_buy">Купить, 92 000 ₽</a></h3>
+            </div>
+          </div>
+          <div class="material">
+            <h3>Материал</h3>
+            <p>Кожа, текстиль</p>
+          </div>
+          <div class="country">
+            <h3>Страна-производитель</h3>
+            <p>Италия</p>
+          </div>
+          <div class="description">
+            <h3>Описание</h3>
+            <p>Деконструктивный и авангардный дизайн с уникальными концепциями и нетрадиционным мастерством.</p>
+            <p>В качестве материала используются два вида кожи. Верх дополнен деталями из сетчатого материала и текстиля.</p>
+            <p>Грубые и многослойные кроссовки показывают отличие от традиционного аккуратного стиля создания обуви. Они оснащены раскрашенной вручную резиновой подошвой с брызгами и потеками.</p>
+            <p>Оригинальная слегка асимметричная система шнуровки и фирменный стежок на заднике завершают уникальный внешний вид.</p>
+          </div>
+          <div class="details">
+            <h3>Детали</h3>
+            <ul>
+              <li>Два вида кожи</li>
+              <li>Детали из текстиля</li>
+              <li>Неординарная шнуровка</li>
+              <li>Перфорация на мыске</li>
+              <li>Стежок на заднике</li>
+              <li>Фигурная резиновая подошва</li>
+              <li>Цепкая подметка</li>
+              <li>Окрашивание с брызгами и потеками</li>
+              <li>Пестрая расцветка</li>
+            </ul>
+            <h2 class="slider_bottom_header">Вам может быть интересно</h2>
+          </div>
+        </div>
+        <div class="item_right">
+          <div class="item_right_slider_top">
+            <div class="slide" style="background-image:url(assets/img/item_1/1.png)"></div>
+            <div class="slide" style="background-image:url(assets/img/item_1/2.png)"></div>
+            <div class="slide" style="background-image:url(assets/img/item_1/3.png)"></div>
+            <div class="slide" style="background-image:url(assets/img/item_1/4.png)"></div>
+          </div>
+          <div class="item_right_slider_bottom"><img loading="lazy" data-src="assets/img/item_1/1.png"><img loading="lazy" data-src="assets/img/item_1/2.png"><img loading="lazy" data-src="assets/img/item_1/3.png"><img loading="lazy" data-src="assets/img/item_1/4.png"></div>
+        </div>
+        <div class="slider_bottom" id="reload">
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/1.jpg">
+            <h3><a href="item.html">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/2.jpg">
+            <h3> <a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/3.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/4.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/5.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/6.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/7.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+          <div class="slider_item"><img loading="lazy" data-src="assets/img/catalog/8.jpg">
+            <h3><a href="#">Maison Margiela Fusion Low Sneakers</a></h3>
+            <p>Кроссовки</p>
+            <h3 class="price">92 000 ₽</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="assets/scripts/jquery-3.5.1.slim.min.js"></script>
+    <script src="scripts/bundle.js"></script>
+    <script src="assets/scripts/slick.min.js"></script>
+    <script src="assets/scripts/jquery.magnific-popup.min.js"></script>
+    <footer class="footer null">
+      <div class="footer_cat">
+        <div class="group">
+          <h3 class="footer_info">Фетч</h3>
+          <p> <a class="group_link" href="#">Магазин</a></p>
+          <p> <a class="group_link" href="#">Блог</a></p>
+          <p> <a class="group_link" href="#">Доставка и оплата</a></p>
+          <div class="contact"> 
+            <p class="mail"><a class="mail" href="#">shop@fetch.ru</a></p>
+            <p class="number">8 800 912-11-42</p>
+            <p class="call_free">Звонок бесплатный</p>
+          </div>
+        </div>
+        <div class="group">
+          <h3> <a href="#">Для мужчин</a></h3>
+          <p> <a class="group_link" href="#">Верхняя одежда</a></p>
+          <p> <a class="group_link" href="#">Рубашки и поло</a></p>
+          <p><a class="group_link" href="#">Трикотаж</a></p>
+          <p><a class="group_link" href="#">Брюки и джинсы</a></p>
+          <p><a class="group_link" href="#">Бельё и носки</a></p>
+        </div>
+        <div class="group">
+          <h3> <a href="#">Для женщин</a></h3>
+          <p> <a class="group_link" href="#">Верхняя одежда</a></p>
+          <p> <a class="group_link" href="#">Рубашки и поло</a></p>
+          <p><a class="group_link" href="#">Трикотаж</a></p>
+          <p><a class="group_link" href="#">Платья и юбки</a></p>
+          <p><a class="group_link" href="#">Бельё и носки</a></p>
+        </div>
+        <div class="group">
+          <h3> <a href="#">Обувь</a></h3>
+          <p> <a class="group_link" href="#">Кроссовки и кеды</a></p>
+          <p> <a class="group_link" href="#">Ботинки</a></p>
+        </div>
+        <div class="group">
+          <h3> <a href="#">Аксессуары</a></h3>
+          <p> <a class="group_link" href="#">Сумки и рюкзаки</a></p>
+          <p> <a class="group_link" href="#">Часы</a></p>
+          <p><a class="group_link" href="#">Бижутерия</a></p>
+          <p><a class="group_link" href="#">Средства для ухода</a></p>
+        </div>
+        <div class="group">
+          <h3> <a href="#">Скидки</a></h3>
+          <p> <a class="group_link" href="#">Летняя распродажа</a></p>
+          <p> <a class="group_link" href="#">Коллекция 2018</a></p>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>© Фетч-команда, 2019</p><a href="#">Правила обработки персональных данных</a><a href="#">Разработка и поддержка сайта</a>
+      </div>
+    </footer>
+  </body>
+</html>

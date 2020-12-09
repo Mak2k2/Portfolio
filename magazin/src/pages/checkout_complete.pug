@@ -1,0 +1,71 @@
+doctype html
+html(lang="ru")
+	head
+		include head.pug
+	body
+		div.wrapper
+			include menu_light.pug
+			div.wrapper
+				div.complete
+					h1 Заказ №213 оформлен
+					p Скоро вам позвонит менеджер, чтобы подтвердить заказ.
+					p 
+						a(href="index.html") Вернуться на главную 
+						|или 
+						a(href="catalog.html") продолжить покупки в каталоге
+					h2.complete_slider Вам может быть интересно
+					div.slider_bottom
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/1.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/2.jpg")
+							h3 
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/3.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/4.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/5.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/6.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/7.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+						div.slider_item
+							img(loading="lazy" data-src="assets/img/catalog/8.jpg")
+							h3
+								a(href="item.html") Maison Margiela Fusion Low Sneakers
+							p Кроссовки
+							h3.price 92 000 ₽
+		script(src="assets/scripts/jquery-3.5.1.slim.min.js")
+		script(src="scripts/bundle.js")
+		script(src="assets/scripts/slick.min.js")
+		script(src="assets/scripts/jquery.magnific-popup.min.js")
+		footer.footer.null
+			include footer.pug
