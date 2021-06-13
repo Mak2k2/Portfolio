@@ -65,9 +65,6 @@ function portConnect() {
 
   socket.on('close', function() {
     console.log('client disconnected');
-      //portConnect()
-      //socket.end();
-    //return(console.log("Soket close"));
   });
 
   return;
