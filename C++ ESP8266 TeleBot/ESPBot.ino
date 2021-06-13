@@ -114,17 +114,9 @@ void handleNewMessages(int numNewMessages) {
     chat_id = String(bot.messages[i].chat_id);
     String text = bot.messages[i].text;
     String data = String(bot.messages[i].data);
-    //Serial.println("callback_data="+data);
-    
-    // if (chat_id != old_chat_id){
-    //   defaultBothMessage(chat_id);
-    //   //nand save chat_id
-    // } // need save to nand
 
     String from_name = bot.messages[i].from_name;
     if (from_name == "") from_name = "Guest";
-
-    //Serial.println(text);
 
     if (data == "switch_state") {
       if(state_port == true) state_port = false;
@@ -150,17 +142,12 @@ void handleNewMessages(int numNewMessages) {
       Serial.println(message_id);
       editMessageInline(chat_id, message_id);
       defaultMessageReply(chat_id);
-      //int test2 = writeEprom(21,"******************");
-      //String test = readEprom(21);
-      //Serial.println("readEEPROM="+test);
     }
 
     if (text == "/start") {
-     message_id = bot.sendMessage(chat_id, "Найдено устройство");
-     editMessageInline(chat_id, message_id);
-     defaultMessageReply(chat_id);
-     //defaultBothMessage(chat_id);
-     //String nand = chat_id;//сохранить чат ид для стартового сообщения
+      message_id = bot.sendMessage(chat_id, "Найдено устройство");
+      editMessageInline(chat_id, message_id);
+      defaultMessageReply(chat_id);
     }
   }
 }
@@ -189,8 +176,6 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  //if (chat_id != "")
-
 }
 
 void loop() {
