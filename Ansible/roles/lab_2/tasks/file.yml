@@ -1,0 +1,13 @@
+---
+- name: create dir
+  file:
+    name: "{{ base_dir }}"
+    state: directory
+
+- name: create file
+  file:
+    path: "{{ base_dir }}/{{ file_name }}"
+    state: touch
+    owner: root
+    group: root
+    mode: 0600

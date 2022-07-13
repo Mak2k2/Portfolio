@@ -1,0 +1,5 @@
+---
+- name: lab1
+  hosts: servers
+  roles:
+    - lab_2
