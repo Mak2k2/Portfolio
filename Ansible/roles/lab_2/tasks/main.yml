@@ -1,9 +1,0 @@
----
-- name: add user
-  user:
-    name: testuser
-    password: "{{ password | password_hash('sha512') }}"
-    update_password: on_create
-
-- name: greate file
-  include_tasks: file.yml
