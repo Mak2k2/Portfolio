@@ -1,0 +1,13 @@
+---
+
+- name: Install Nginx Web Server on Debian Family
+  apt:
+    name: nginx
+    state: latest
+  notify:
+    - nginx systemd
+
+- name: Disable default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent

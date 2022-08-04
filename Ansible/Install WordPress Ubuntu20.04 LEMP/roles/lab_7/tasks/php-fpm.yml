@@ -1,0 +1,23 @@
+---
+
+- name: Install PHP-FPM of Debian 10
+  apt:
+    name:
+      - php
+      - php-pear
+      - php-cli
+      - php-cgi
+      - php-fpm
+      - php-json
+      - php-zip
+      - php-xml
+      - php-bcmath
+      - php-mbstring
+      - php-memcache
+      - php-memcached
+      - php-mysql
+      - php-gd
+      - php-curl
+      - php-xmlrpc
+    update_cache: true
+    state: latest
