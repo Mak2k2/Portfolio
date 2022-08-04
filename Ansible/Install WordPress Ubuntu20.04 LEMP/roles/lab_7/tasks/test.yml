@@ -1,0 +1,20 @@
+---
+
+- name: Check site
+  uri:
+    url: "http://127.0.0.1"
+    follow_redirects: true
+    method: GET
+  register: result
+  until: result.status == 200
+  retries: 3
+  delay: 5
+
+- name: Show result
+  debug:
+    msg: "{{ result.status }}"
+
+- name: err
+  fail:
+    msg: "Site not work"
+  when: result.status != 200
