@@ -1,1 +1,0 @@
-ansible-playbook play.yml -c local

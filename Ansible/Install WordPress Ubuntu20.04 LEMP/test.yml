@@ -1,6 +1,0 @@
----
-
-- name: lab7 test
-  hosts: servers
-  tasks:
-    - include: roles/lab_7/tasks/test.yml

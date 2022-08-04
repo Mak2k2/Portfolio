@@ -1,8 +1,0 @@
----
-mysql_root_password: "mysql_root_password"
-db_name: "wordpress"
-db_user: "wordpress"
-db_password: "wordpress"
-download_url: "http://wordpress.org/latest.tar.gz"
-wpdirectory: "/var/www"
-domain: "localhost"

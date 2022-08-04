@@ -1,6 +1,0 @@
----
-
-- name: lab7
-  hosts: servers
-  roles:
-    - lab_7
