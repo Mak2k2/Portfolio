@@ -1,5 +1,0 @@
----
-- name: lab3
-  hosts: servers
-  roles:
-    - lab_3
