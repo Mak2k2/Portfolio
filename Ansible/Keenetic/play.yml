@@ -1,9 +1,0 @@
----
-- name: keenetic
-  hosts: keenetic
-  gather_facts: False
-
-  remote_user: admin
-
-  roles:
-    - keenetic

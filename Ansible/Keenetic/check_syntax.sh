@@ -1,1 +1,0 @@
-yamllint roles/keenetic/tasks/*.* && ansible-lint play.yml && echo "syntax is correct"
