@@ -1,0 +1,5 @@
+[keenetic]
+192.168.0.1
+192.168.1.1
+[local]
+localhost ansible_connection=local
