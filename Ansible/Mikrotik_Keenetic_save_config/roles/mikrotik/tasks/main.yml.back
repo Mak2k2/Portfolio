@@ -1,0 +1,15 @@
+---
+- name: Display resource statistics (routeros)
+  community.network.routeros_command:
+    commands: "/export"
+  register: result
+  when: ansible_network_os == 'community.network.routeros'
+
+- name: clear config
+  shell: "echo ''{{ result.stdout_lines }}'' > backups/{{ inventory_hostname }}.tmp"
+  when: result is defined
+  delegate_to: localhost
+  tags: mikrotik
+  changed_when: false
+  args:
+    executable: /usr/bin/bash

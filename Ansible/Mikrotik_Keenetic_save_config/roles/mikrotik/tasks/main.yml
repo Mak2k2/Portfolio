@@ -1,0 +1,17 @@
+---
+- name: Display resource statistics (routeros)
+  community.network.routeros_command:
+    commands: "/export"
+  register: result
+  when: ansible_network_os == 'community.network.routeros'
+
+- name: show
+  debug:
+    var: result
+
+- name: Backup
+  ansible.builtin.copy:
+    content: "{{ result.stdout |join('\n') }}"
+    dest: "backups/{{ inventory_hostname }}.conf"
+  when: result is defined
+  delegate_to: localhost

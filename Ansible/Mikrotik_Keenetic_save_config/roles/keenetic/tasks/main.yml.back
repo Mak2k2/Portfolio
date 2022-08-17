@@ -1,0 +1,21 @@
+---
+- name: show run
+  raw: "show running-config"
+  register: result
+  changed_when: false
+
+- name: save config
+  shell: echo '{{ result.stdout }}' > backups/{{ inventory_hostname }}.tmp
+  delegate_to: localhost
+  changed_when: false
+  args:
+    executable: /usr/bin/bash
+
+- name: clear config
+  shell: |
+    set -o pipefail
+    cat -v backups/{{ inventory_hostname }}.tmp | sed 's/^\^\[\[K//' | sed 's/\^M$//' > backups/{{ inventory_hostname }}.conf && rm -f backups/{{ inventory_hostname }}.tmp
+  delegate_to: localhost
+  changed_when: false
+  args:
+    executable: /usr/bin/bash

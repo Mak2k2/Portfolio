@@ -1,0 +1,10 @@
+[keenetic]
+192.168.0.1
+[cisco]
+192.168.1.1
+192.168.2.1
+[mikrotik]
+192.168.3.1
+192.168.4.1
+[local]
+localhost ansible_connection=local
