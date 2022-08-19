@@ -5,10 +5,6 @@
   register: result
   when: ansible_network_os == 'community.network.routeros'
 
-- name: show
-  debug:
-    var: result
-
 - name: Backup
   ansible.builtin.copy:
     content: "{{ result.stdout |join('\n') }}"
