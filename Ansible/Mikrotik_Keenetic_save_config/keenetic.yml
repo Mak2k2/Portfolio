@@ -5,7 +5,5 @@
 
   gather_facts: False
 
-  remote_user: admin
-
   roles:
     - keenetic
