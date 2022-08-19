@@ -7,12 +7,13 @@
 - name: Backup
   ansible.builtin.copy:
     content: "{{ result.stdout_lines |join('\n') }}"
-    dest: "backups/{{ inventory_hostname }}.tmp"
+    dest: "backups/{{ inventory_hostname }}.conf"
+    mode: '0600'
   when: result is defined
   delegate_to: localhost
 
 - name: clear config
-  shell: sed '/\[K/d' "backups/{{ inventory_hostname }}.tmp" > "backups/{{ inventory_hostname }}.conf" && rm -f "backups/{{ inventory_hostname }}.tmp"
+  shell: sed -i '/\[K/d' "backups/{{ inventory_hostname }}.conf"
   delegate_to: localhost
   changed_when: false
   args:
