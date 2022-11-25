@@ -1,0 +1,4 @@
+node_labels:
+  node.kubernetes.io/ingress: "true" # всем серверам в группе kube-ingress ставить соответствующую метку
+node_taints:
+  - "node.kubernetes.io/ingress=:NoSchedule"
