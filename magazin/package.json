@@ -31,6 +31,6 @@
     "postcss": "^8.1.4"
   },
   "devDependencies": {
-    "webpack-stream": "^6.1.0"
+    "webpack-stream": "^7.0.0"
   }
 }
