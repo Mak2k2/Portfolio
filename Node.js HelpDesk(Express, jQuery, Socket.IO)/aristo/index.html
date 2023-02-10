@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
-    <head>
+	<head>
 	    <meta charset="utf-8">
-		<title>Help desk</title>
+	    <title>Help desk</title>
 	    <style> input, label { line-height: 1.5em; }</style>
 	    <link type="text/css" href="css/Aristo/Aristo.css" rel="stylesheet" />
 	    <script src="js/jquery-1.6.1.min.js"></script>
 	    <script src="js/jquery.cookie.js"></script>
 	    <script src="js/jquery-ui.min.js"></script>
-        <script src="js/socket.io-client/dist/socket.io.js"></script>
+            <script src="js/socket.io-client/dist/socket.io.js"></script>
 	    <script src="js/main.js"></script>
 		<style type="text/css">
 			/*demo page css*/
@@ -25,22 +25,22 @@
 			#right{ position: sticky; height: 100%; z-index:1; float:right; padding:1.5em 2%; width:35%; background-color:#e9e9e9; color:inherit; font: 150% Cambria, Georgia, serif; margin: 1px;}
 			.ui-accordion { width: 120%; }
 			body, html { width: 100%; height: 100%;	}
-      textarea { position: relative; width: 90%; min-height: 100px; font: 150% Cambria, Georgia, serif; color: #444; padding: 0px; }
-      .noscroll { overflow: hidden; }
+      			textarea { position: relative; width: 90%; min-height: 100px; font: 150% Cambria, Georgia, serif; color: #444; padding: 0px; }
+      			.noscroll { overflow: hidden; }
 		</style>
 	</head>
 	<body class="ui-form">
 		<h1>Help desk</h1>
 		<aside id="right">
 			<!-- <h2><b>Зкрытые сегодня:</b></h2> -->
-		  Поиск заявок
-		  <form method="POST" action="" onsubmit="return submit_handler(this)">
+			Поиск заявок
+			<form method="POST" action="" onsubmit="return submit_handler(this)">
 				<input name="anything" value="">
 				<input type="submit">
-			</form>
-			<div id="statistics1"></div>
-		  <div id="statistics2"></div>
-		  <div id="content2"></div>
+		  	</form>
+		<div id="statistics1"></div>
+		<div id="statistics2"></div>
+		<div id="content2"></div>
 		</aside>
 
 	<!-- Accordion -->
@@ -57,17 +57,13 @@
 		
 	<!-- ui-dialog -->
 	<div id="t_Close" title="Закрыть заявку">
-
-			<strong>Написать ответ</strong><br />
-			<textarea id="t_close_message" class="ui-dialog-content ui-widget-content"></textarea>
-
+		<strong>Написать ответ</strong><br />
+		<textarea id="t_close_message" class="ui-dialog-content ui-widget-content"></textarea>
 	</div>
 
 	<div id="t_message" title="Написать сообщение">
-
-			<strong>Написать сообщение</strong><br />
-			<textarea id="t_send_message" ></textarea>
-
+		<strong>Написать сообщение</strong><br />
+		<textarea id="t_send_message" ></textarea>
 	</div>
 
 	<!-- Datepicker -->
