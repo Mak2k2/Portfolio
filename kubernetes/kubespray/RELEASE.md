@@ -3,17 +3,19 @@
 The Kubespray Project is released on an as-needed basis. The process is as follows:
 
 1. An issue is proposing a new release with a changelog since the last release. Please see [a good sample issue](https://github.com/kubernetes-sigs/kubespray/issues/8325)
-2. At least one of the [approvers](OWNERS_ALIASES) must approve this release
-3. The `kube_version_min_required` variable is set to `n-1`
-4. Remove hashes for [EOL versions](https://github.com/kubernetes/website/blob/main/content/en/releases/patch-releases.md) of kubernetes from `*_checksums` variables.
-5. Create the release note with [Kubernetes Release Notes Generator](https://github.com/kubernetes/release/blob/master/cmd/release-notes/README.md). See the following `Release note creation` section for the details.
-6. An approver creates [new release in GitHub](https://github.com/kubernetes-sigs/kubespray/releases/new) using a version and tag name like `vX.Y.Z` and attaching the release notes
-7. An approver creates a release branch in the form `release-X.Y`
-8. The corresponding version of [quay.io/kubespray/kubespray:vX.Y.Z](https://quay.io/repository/kubespray/kubespray) and [quay.io/kubespray/vagrant:vX.Y.Z](https://quay.io/repository/kubespray/vagrant) container images are built and tagged. See the following `Container image creation` section for the details.
-9. The `KUBESPRAY_VERSION` variable is updated in `.gitlab-ci.yml`
-10. The release issue is closed
-11. An announcement email is sent to `dev@kubernetes.io` with the subject `[ANNOUNCE] Kubespray $VERSION is released`
-12. The topic of the #kubespray channel is updated with `vX.Y.Z is released! | ...`
+1. At least one of the [approvers](OWNERS_ALIASES) must approve this release
+1. (Only for major releases) The `kube_version_min_required` variable is set to `n-1`
+1. (Only for major releases) Remove hashes for [EOL versions](https://github.com/kubernetes/website/blob/main/content/en/releases/patch-releases.md) of kubernetes from `*_checksums` variables.
+1. Create the release note with [Kubernetes Release Notes Generator](https://github.com/kubernetes/release/blob/master/cmd/release-notes/README.md). See the following `Release note creation` section for the details.
+1. An approver creates [new release in GitHub](https://github.com/kubernetes-sigs/kubespray/releases/new) using a version and tag name like `vX.Y.Z` and attaching the release notes
+1. (Only for major releases) An approver creates a release branch in the form `release-X.Y`
+1. (For major releases) On the `master` branch: bump the version in `galaxy.yml` to the next expected major release (X.y.0 with y = Y + 1), make a Pull Request.
+1. (For minor releases) On the `release-X.Y` branch: bump the version in `galaxy.yml` to the next expected minor release (X.Y.z with z = Z + 1), make a Pull Request.
+1. The corresponding version of [quay.io/kubespray/kubespray:vX.Y.Z](https://quay.io/repository/kubespray/kubespray) and [quay.io/kubespray/vagrant:vX.Y.Z](https://quay.io/repository/kubespray/vagrant) container images are built and tagged. See the following `Container image creation` section for the details.
+1. The release issue is closed
+1. An announcement email is sent to `dev@kubernetes.io` with the subject `[ANNOUNCE] Kubespray $VERSION is released`
+1. The topic of the #kubespray channel is updated with `vX.Y.Z is released! | ...`
+1. Create/Update Issue for upgradeing kubernetes and [k8s-conformance](https://github.com/cncf/k8s-conformance)
 
 ## Major/minor releases and milestones
 
@@ -60,7 +62,7 @@ release-notes --start-sha <The start commit-id> --end-sha <The end commit-id> --
 ```
 
 If the release note file(/tmp/kubespray-release-note) contains "### Uncategorized" pull requests, those pull requests don't have a valid kind label(`kind/feature`, etc.).
-It is necessary to put a valid label on each pull request and run the above release-notes command again to get a better release note)
+It is necessary to put a valid label on each pull request and run the above release-notes command again to get a better release note
 
 ## Container image creation
 

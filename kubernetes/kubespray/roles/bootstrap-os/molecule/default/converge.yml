@@ -1,6 +1,7 @@
 ---
 - name: Converge
   hosts: all
-  gather_facts: no
+  gather_facts: false
+  become: true
   roles:
     - role: bootstrap-os

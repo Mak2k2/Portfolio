@@ -3,13 +3,14 @@
   file:
     path: /opt/cni/bin
     state: directory
-    mode: 0755
-    owner: "{{ kube_owner }}"
+    mode: "0755"
+    owner: "{{ cni_bin_owner }}"
     recurse: true
 
 - name: CNI | Copy cni plugins
   unarchive:
-    src: "{{ local_release_dir }}/cni-plugins-linux-{{ image_arch }}-{{ cni_version }}.tgz"
+    src: "{{ downloads.cni.dest }}"
     dest: "/opt/cni/bin"
-    mode: 0755
-    remote_src: yes
+    mode: "0755"
+    owner: "{{ cni_bin_owner }}"
+    remote_src: true

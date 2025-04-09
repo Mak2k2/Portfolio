@@ -3,23 +3,22 @@
 - name: Confirm selinux deployed
   stat:
     path: /etc/selinux/config
-    get_attributes: no
-    get_checksum: no
-    get_mime: no
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
   when:
     - ansible_os_family == "RedHat"
     - "'Amazon' not in ansible_distribution"
   register: slc
 
 - name: Set selinux policy
-  selinux:
+  ansible.posix.selinux:
     policy: targeted
     state: "{{ preinstall_selinux_state }}"
   when:
     - ansible_os_family == "RedHat"
     - "'Amazon' not in ansible_distribution"
     - slc.stat.exists
-  changed_when: False
   tags:
     - bootstrap-os
 
@@ -28,9 +27,9 @@
     dest: /etc/gai.conf
     line: "precedence ::ffff:0:0/96  100"
     state: present
-    create: yes
-    backup: yes
-    mode: 0644
+    create: true
+    backup: "{{ leave_etc_backup_files }}"
+    mode: "0644"
   when:
     - disable_ipv6_dns
     - not ansible_os_family in ["Flatcar", "Flatcar Container Linux by Kinvolk"]
@@ -48,9 +47,9 @@
 - name: Stat sysctl file configuration
   stat:
     path: "{{ sysctl_file_path }}"
-    get_attributes: no
-    get_checksum: no
-    get_mime: no
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
   register: sysctl_file_stat
   tags:
     - bootstrap-os
@@ -68,50 +67,51 @@
   file:
     name: "{{ sysctl_file_path | dirname }}"
     state: directory
-    mode: 0755
+    mode: "0755"
 
 - name: Enable ip forwarding
-  sysctl:
+  ansible.posix.sysctl:
     sysctl_file: "{{ sysctl_file_path }}"
     name: net.ipv4.ip_forward
     value: "1"
     state: present
-    reload: yes
+    reload: true
+  when: ipv4_stack | bool
 
 - name: Enable ipv6 forwarding
-  sysctl:
+  ansible.posix.sysctl:
     sysctl_file: "{{ sysctl_file_path }}"
     name: net.ipv6.conf.all.forwarding
-    value: 1
+    value: "1"
     state: present
-    reload: yes
-  when: enable_dual_stack_networks | bool
+    reload: true
+  when: ipv6_stack | bool
 
 - name: Check if we need to set fs.may_detach_mounts
   stat:
     path: /proc/sys/fs/may_detach_mounts
-    get_attributes: no
-    get_checksum: no
-    get_mime: no
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
   register: fs_may_detach_mounts
   ignore_errors: true  # noqa ignore-errors
 
 - name: Set fs.may_detach_mounts if needed
-  sysctl:
+  ansible.posix.sysctl:
     sysctl_file: "{{ sysctl_file_path }}"
     name: fs.may_detach_mounts
     value: 1
     state: present
-    reload: yes
+    reload: true
   when: fs_may_detach_mounts.stat.exists | d(false)
 
-- name: Ensure kube-bench parameters are set
-  sysctl:
+- name: Ensure kubelet expected parameters are set
+  ansible.posix.sysctl:
     sysctl_file: "{{ sysctl_file_path }}"
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
-    reload: yes
+    reload: true
   with_items:
     - { name: kernel.keys.root_maxbytes, value: 25000000 }
     - { name: kernel.keys.root_maxkeys, value: 1000000 }
@@ -119,20 +119,28 @@
     - { name: kernel.panic_on_oops, value: 1 }
     - { name: vm.overcommit_memory, value: 1 }
     - { name: vm.panic_on_oom, value: 0 }
-  when: kubelet_protect_kernel_defaults|bool
+  when: kubelet_protect_kernel_defaults | bool
 
 - name: Check dummy module
-  modprobe:
+  community.general.modprobe:
     name: dummy
     state: present
     params: 'numdummies=0'
   when: enable_nodelocaldns
 
 - name: Set additional sysctl variables
-  sysctl:
+  ansible.posix.sysctl:
     sysctl_file: "{{ sysctl_file_path }}"
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
-    reload: yes
+    reload: true
   with_items: "{{ additional_sysctl }}"
+
+- name: Disable fapolicyd service
+  failed_when: false
+  systemd_service:
+    name: fapolicyd
+    state: stopped
+    enabled: false
+  when: disable_fapolicyd

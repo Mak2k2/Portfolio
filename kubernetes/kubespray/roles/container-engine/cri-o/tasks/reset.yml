@@ -1,7 +1,10 @@
 ---
+- name: Cri-o | load vars
+  import_tasks: load_vars.yml
+
 - name: CRI-O | Kubic repo name for debian os family
   set_fact:
-    crio_kubic_debian_repo_name: "{{ ((ansible_distribution == 'Ubuntu') | ternary('x','')) ~ ansible_distribution ~ '_' ~ ansible_distribution_version }}"
+    crio_kubic_debian_repo_name: "{{ ((ansible_distribution == 'Ubuntu') | ternary('x', '')) ~ ansible_distribution ~ '_' ~ ansible_distribution_version }}"
   when: ansible_os_family == "Debian"
   tags:
     - reset_crio
@@ -16,8 +19,8 @@
 
 - name: CRI-O | Remove cri-o apt repo
   apt_repository:
-    repo: "deb {{ crio_download_crio }}{{ crio_version }}/{{ crio_kubic_debian_repo_name }}/ /"
-    state: present
+    repo: "deb {{ crio_download_crio }}v{{ crio_version }}/{{ crio_kubic_debian_repo_name }}/ /"
+    state: absent
     filename: devel-kubic-libcontainers-stable-cri-o
   when: crio_kubic_debian_repo_name is defined
   tags:
@@ -33,7 +36,7 @@
 
 - name: CRI-O | Remove CRI-O kubic yum repo
   yum_repository:
-    name: "devel_kubic_libcontainers_stable_cri-o_{{ crio_version }}"
+    name: "devel_kubic_libcontainers_stable_cri-o_v{{ crio_version }}"
     state: absent
   when:
     - ansible_os_family == "RedHat"
@@ -43,8 +46,6 @@
 
 - name: CRI-O | Run yum-clean-metadata
   command: yum clean metadata
-  args:
-    warn: no
   when:
     - ansible_os_family == "RedHat"
   tags:
@@ -65,7 +66,6 @@
     name: crio
     daemon_reload: true
     enabled: false
-    masked: true
     state: stopped
   tags:
     - reset_crio
@@ -81,21 +81,18 @@
   tags:
     - reset_crio
 
-- name: CRI-O | Remove dpkg hold
-  dpkg_selections:
+- name: CRI-O | Remove CRI-O binaries
+  file:
     name: "{{ item }}"
-    selection: install
-  when: ansible_pkg_mgr == 'apt'
-  changed_when: false
-  with_items: "{{ crio_packages }}"
+    state: absent
+  with_items: "{{ crio_bin_files }}"
   tags:
     - reset_crio
 
-- name: CRI-O | Uninstall CRI-O package
-  package:
+- name: CRI-O | Remove CRI-O libexec
+  file:
     name: "{{ item }}"
     state: absent
-  when: not is_ostree
-  with_items: "{{ crio_packages }}"
+  with_items: "{{ crio_libexec_files }}"
   tags:
     - reset_crio

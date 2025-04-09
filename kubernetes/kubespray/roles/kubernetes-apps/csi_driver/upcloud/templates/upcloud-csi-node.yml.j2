@@ -42,8 +42,7 @@ spec:
           args:
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodehost=$(NODE_ID)"
-            - "--username=$(UPCLOUD_USERNAME)"
-            - "--password=$(UPCLOUD_PASSWORD)"
+            - "--mode=monolith"
           env:
             - name: CSI_ENDPOINT
               value: unix:///csi/csi.sock
@@ -78,7 +77,7 @@ spec:
             - name: device-dir
               mountPath: /dev
       imagePullSecrets:
-        - name: regcred
+        - name: upcloud
       volumes:
         - name: registration-dir
           hostPath:

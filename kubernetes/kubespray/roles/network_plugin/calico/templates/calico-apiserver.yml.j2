@@ -1,4 +1,4 @@
-# Policy to ensure the API server isn't cut off. Can be modified, but ensure 
+# Policy to ensure the API server isn't cut off. Can be modified, but ensure
 # that the main API server is always able to reach the Calico API server.
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
@@ -72,6 +72,15 @@ spec:
           initialDelaySeconds: 90
           periodSeconds: 10
         name: calico-apiserver
+{% if calico_version is version('3.28.0', '>=') %}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5443
+            scheme: HTTPS
+          timeoutSeconds: 5
+          periodSeconds: 60
+{% else %}
         readinessProbe:
           exec:
             command:
@@ -79,6 +88,7 @@ spec:
           failureThreshold: 5
           initialDelaySeconds: 5
           periodSeconds: 10
+{% endif %}
         securityContext:
           privileged: false
           runAsUser: 0
@@ -93,7 +103,7 @@ spec:
       serviceAccountName: calico-apiserver
       tolerations:
       - effect: NoSchedule
-        key: node-role.kubernetes.io/master
+        key: node-role.kubernetes.io/control-plane
       volumes:
       - name: calico-apiserver-certs
         secret:
@@ -104,8 +114,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: calico-apiserver 
-  namespace: calico-apiserver 
+  name: calico-apiserver
+  namespace: calico-apiserver
 
 ---
 
@@ -157,13 +167,16 @@ rules:
   - networksets
   - bgpconfigurations
   - bgppeers
+  - bgpfilters
   - felixconfigurations
   - kubecontrollersconfigurations
   - ippools
+  - ipamconfigs
   - ipreservations
   - ipamblocks
   - blockaffinities
   - caliconodestatuses
+  - tiers
   verbs:
   - get
   - list
@@ -171,6 +184,7 @@ rules:
   - create
   - update
   - delete
+{% if calico_version is version('3.28.0', '>=') %}
 - apiGroups:
   - policy
   resourceNames:
@@ -179,7 +193,7 @@ rules:
   - podsecuritypolicies
   verbs:
   - use
-
+{% endif %}
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

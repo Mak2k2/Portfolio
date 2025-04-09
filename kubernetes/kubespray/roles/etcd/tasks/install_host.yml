@@ -3,39 +3,30 @@
   command: "{{ bin_dir }}/etcd --version"
   register: etcd_current_host_version
   # There's a chance this play could run before etcd is installed at all
+  # TODO: figure out whether this happens. "A chance" is not enough information
   ignore_errors: true
   when: etcd_cluster_setup
 
 - name: Restart etcd if necessary
   command: /bin/true
-  notify: restart etcd
+  notify: Restart etcd
   when:
     - etcd_cluster_setup
-    - etcd_version.lstrip('v') not in etcd_current_host_version.stdout|default('')
+    - etcd_version not in etcd_current_host_version.stdout | default('')
 
 - name: Restart etcd-events if necessary
   command: /bin/true
-  notify: restart etcd-events
+  notify: Restart etcd-events
   when:
     - etcd_events_cluster_setup
-    - etcd_version.lstrip('v') not in etcd_current_host_version.stdout|default('')
+    - etcd_version not in etcd_current_host_version.stdout | default('')
 
-- name: install | Download etcd and etcdctl
-  include_tasks: "../../download/tasks/download_file.yml"
-  vars:
-    download: "{{ download_defaults | combine(downloads.etcd) }}"
-  when: etcd_cluster_setup
-  tags:
-    - never
-    - etcd
-
-- name: install | Copy etcd and etcdctl binary from download dir
+- name: Install | Copy etcd binary from download dir
   copy:
-    src: "{{ local_release_dir }}/etcd-{{ etcd_version }}-linux-{{ host_architecture }}/{{ item }}"
+    src: "{{ local_release_dir }}/etcd-v{{ etcd_version }}-linux-{{ host_architecture }}/{{ item }}"
     dest: "{{ bin_dir }}/{{ item }}"
-    mode: 0755
-    remote_src: yes
+    mode: "0755"
+    remote_src: true
   with_items:
     - etcd
-    - etcdctl
   when: etcd_cluster_setup

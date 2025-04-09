@@ -3,7 +3,7 @@
   template:
     src: "glusterfs-daemonset.json.j2"
     dest: "{{ kube_config_dir }}/glusterfs-daemonset.json"
-    mode: 0644
+    mode: "0644"
   become: true
   register: "rendering"
 - name: "Kubernetes Apps | Install and configure GlusterFS daemonset"
@@ -23,8 +23,8 @@
   changed_when: false
   vars:
     daemonset_state: { stdout: "{}" }
-    ready: "{{ daemonset_state.stdout|from_json|json_query(\"status.numberReady\") }}"
-    desired: "{{ daemonset_state.stdout|from_json|json_query(\"status.desiredNumberScheduled\") }}"
+    ready: "{{ daemonset_state.stdout | from_json | json_query(\"status.numberReady\") }}"
+    desired: "{{ daemonset_state.stdout | from_json | json_query(\"status.desiredNumberScheduled\") }}"
   until: "ready | int >= 3"
   retries: 60
   delay: 5
@@ -33,7 +33,7 @@
   template:
     src: "heketi-service-account.json.j2"
     dest: "{{ kube_config_dir }}/heketi-service-account.json"
-    mode: 0644
+    mode: "0644"
   become: true
   register: "rendering"
 - name: "Kubernetes Apps | Install and configure Heketi Service Account"

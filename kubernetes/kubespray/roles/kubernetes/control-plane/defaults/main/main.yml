@@ -5,8 +5,8 @@ upgrade_cluster_setup: false
 # By default the external API listens on all interfaces, this can be changed to
 # listen on a specific address/interface.
 # NOTE: If you specific address/interface and use loadbalancer_apiserver_localhost
-# loadbalancer_apiserver_localhost (nginx/haproxy) will deploy on masters on 127.0.0.1:{{ loadbalancer_apiserver_port|default(kube_apiserver_port) }} too.
-kube_apiserver_bind_address: 0.0.0.0
+# loadbalancer_apiserver_localhost (nginx/haproxy) will deploy on control plane nodes on 127.0.0.1:{{ loadbalancer_apiserver_port | default(kube_apiserver_port) }} too.
+kube_apiserver_bind_address: "::"
 
 # A port range to reserve for services with NodePort visibility.
 # Inclusive at both ends of the range.
@@ -14,6 +14,9 @@ kube_apiserver_node_port_range: "30000-32767"
 
 # ETCD backend for k8s data
 kube_apiserver_storage_backend: etcd3
+
+# The interval of compaction requests. If 0, the compaction request from apiserver is disabled.
+kube_apiserver_etcd_compaction_interval: "5m0s"
 
 # CIS 1.2.26
 # Validate that the service account token
@@ -26,7 +29,7 @@ kube_etcd_key_file: node-{{ inventory_hostname }}-key.pem
 
 # Associated interfaces must be reachable by the rest of the cluster, and by
 # CLI/web clients.
-kube_controller_manager_bind_address: 0.0.0.0
+kube_controller_manager_bind_address: "::"
 
 # Leader election lease durations and timeouts for controller-manager
 kube_controller_manager_leader_elect_lease_duration: 15s
@@ -35,7 +38,7 @@ kube_controller_manager_leader_elect_renew_deadline: 10s
 # discovery_timeout modifies the discovery timeout
 discovery_timeout: 5m0s
 
-# Instruct first master to refresh kubeadm token
+# Instruct first control plane node to refresh kubeadm token
 kubeadm_refresh_token: true
 
 # Scale down coredns replicas to 0 if not using coredns dns_mode
@@ -48,7 +51,7 @@ audit_log_path: /var/log/audit/kube-apiserver-audit.log
 # num days
 audit_log_maxage: 30
 # the num of audit logs to retain
-audit_log_maxbackups: 1
+audit_log_maxbackups: 10
 # the max size in MB to retain
 audit_log_maxsize: 100
 # policy file
@@ -104,17 +107,28 @@ kube_apiserver_admission_control_config_file: false
 #   cache_size: <cache_size_value>
 kube_apiserver_admission_event_rate_limits: {}
 
+## PodSecurityAdmission plugin configuration
 kube_pod_security_use_default: false
 kube_pod_security_default_enforce: baseline
-kube_pod_security_default_enforce_version: latest
+kube_pod_security_default_enforce_version: "v{{ kube_major_version }}"
 kube_pod_security_default_audit: restricted
-kube_pod_security_default_audit_version: latest
+kube_pod_security_default_audit_version: "v{{ kube_major_version }}"
 kube_pod_security_default_warn: restricted
-kube_pod_security_default_warn_version: latest
+kube_pod_security_default_warn_version: "v{{ kube_major_version }}"
 kube_pod_security_exemptions_usernames: []
 kube_pod_security_exemptions_runtime_class_names: []
 kube_pod_security_exemptions_namespaces:
   - kube-system
+
+## ResourceQuota plugin configuration
+## Resources that ResourceQuota should limit by default if no quota exists
+## Example below enforces quota on all storage classes
+# kube_resource_quota_limited_resources:
+# - apiGroup: ""
+#   resource: persistentvolumeclaims
+#   matchContains:
+#   - .storageclass.storage.k8s.io/requests.storage
+kube_resource_quota_limited_resources: []
 
 # 1.10+ list of disabled admission plugins
 kube_apiserver_disable_admission_plugins: []
@@ -138,6 +152,8 @@ kube_webhook_token_auth_url_skip_tls_verify: false
 kube_webhook_authorization: false
 kube_webhook_authorization_url_skip_tls_verify: false
 
+# Default podnodeselector
+kube_apiserver_admission_plugins_podnodeselector_default_node_selector: ""
 
 ## Variables for OpenID Connect Configuration https://kubernetes.io/docs/admin/authentication/
 ## To use OpenID you have to deploy additional an OpenID Provider (e.g Dex, Keycloak, ...)
@@ -179,14 +195,7 @@ kube_encryption_algorithm: "secretbox"
 # Which kubernetes resources to encrypt
 kube_encryption_resources: [secrets]
 
-# If non-empty, will use this string as identification instead of the actual hostname
-kube_override_hostname: >-
-  {%- if cloud_provider is defined and cloud_provider in [ 'aws' ] -%}
-  {%- else -%}
-  {{ inventory_hostname }}
-  {%- endif -%}
-
-secrets_encryption_query: "resources[*].providers[0].{{kube_encryption_algorithm}}.keys[0].secret"
+secrets_encryption_query: "resources[*].providers[0].{{ kube_encryption_algorithm }}.keys[0].secret"
 
 ## Support tls min version, Possible values: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
 # tls_min_version: ""
@@ -198,7 +207,7 @@ secrets_encryption_query: "resources[*].providers[0].{{kube_encryption_algorithm
 #   - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 #   - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-#   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+#   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
 #   - TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
 #   - TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
 #   - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
@@ -206,7 +215,7 @@ secrets_encryption_query: "resources[*].providers[0].{{kube_encryption_algorithm
 #   - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 #   - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
 #   - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-#   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+#   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
 #   - TLS_ECDHE_RSA_WITH_RC4_128_SHA
 #   - TLS_RSA_WITH_3DES_EDE_CBC_SHA
 #   - TLS_RSA_WITH_AES_128_CBC_SHA
@@ -222,9 +231,24 @@ event_ttl_duration: "1h0m0s"
 ## Automatically renew K8S control plane certificates on first Monday of each month
 auto_renew_certificates: false
 # First Monday of each month
-auto_renew_certificates_systemd_calendar: "{{ 'Mon *-*-1,2,3,4,5,6,7 03:' ~
-  groups['kube_control_plane'].index(inventory_hostname) ~ '0:00' }}"
+auto_renew_certificates_systemd_calendar: "Mon *-*-1,2,3,4,5,6,7 03:00:00"
 # kubeadm renews all the certificates during control plane upgrade.
 # If we have requirement like without renewing certs upgrade the cluster,
 # we can opt out from the default behavior by setting kubeadm_upgrade_auto_cert_renewal to false
 kubeadm_upgrade_auto_cert_renewal: true
+
+# Bash alias of kubectl to interact with Kubernetes cluster much easier
+# kubectl_alias: k
+
+## Enable distributed tracing for kube-apiserver
+kube_apiserver_tracing: false
+kube_apiserver_tracing_endpoint: "[::]:4317"
+kube_apiserver_tracing_sampling_rate_per_million: 100
+
+# Enable kubeadm file discovery if anonymous access has been removed
+kubeadm_use_file_discovery: "{{ remove_anonymous_access }}"
+
+# Supported asymmetric encryption algorithm types for the cluster's keys and certificates.
+# can be one of RSA-2048(default), RSA-3072, RSA-4096, ECDSA-P256
+# ref: https://kubernetes.io/docs/reference/config-api/kubeadm-config.v1beta4/#kubeadm-k8s-io-v1beta4-ClusterConfiguration
+kube_asymmetric_encryption_algorithm: "RSA-2048"

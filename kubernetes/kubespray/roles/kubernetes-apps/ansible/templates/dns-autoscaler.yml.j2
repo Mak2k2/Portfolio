@@ -30,19 +30,18 @@ spec:
       labels:
         k8s-app: dns-autoscaler{{ coredns_ordinal_suffix }}
       annotations:
-        seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
     spec:
       nodeSelector:
-        {{ dns_autoscaler_deployment_nodeselector}}
+        {{ dns_autoscaler_deployment_nodeselector }}
       priorityClassName: system-cluster-critical
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         supplementalGroups: [ 65534 ]
         fsGroup: 65534
       nodeSelector:
         kubernetes.io/os: linux
       tolerations:
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/master
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
 {% if dns_autoscaler_extra_tolerations is defined %}

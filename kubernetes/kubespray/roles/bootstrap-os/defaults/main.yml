@@ -11,12 +11,17 @@ coreos_locksmithd_disable: false
 # Install public repo on Oracle Linux
 use_oracle_public_repo: true
 
+## Ubuntu specific variables
+# Disable unattended-upgrades for Linux kernel and all packages start with linux- on Ubuntu
+ubuntu_kernel_unattended_upgrades_disabled: false
+
 fedora_coreos_packages:
   - python
   - python3-libselinux
   - ethtool                 # required in kubeadm preflight phase for verifying the environment
   - ipset                   # required in kubeadm preflight phase for verifying the environment
   - conntrack-tools         # required by kube-proxy
+  - containernetworking-plugins  # required by crio
 
 ## General
 # Set the hostname to inventory_hostname

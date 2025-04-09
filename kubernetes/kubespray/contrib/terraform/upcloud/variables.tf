@@ -9,6 +9,15 @@ variable "zone" {
   description = "The zone where to run the cluster"
 }
 
+variable "private_cloud" {
+  description = "Whether the environment is in the private cloud region"
+  default     = false
+}
+
+variable "public_zone" {
+  description = "The public zone equivalent if the cluster is running in a private cloud zone"
+}
+
 variable "template_name" {
   description = "Block describing the preconfigured operating system"
 }
@@ -32,6 +41,7 @@ variable "machines" {
     cpu       = string
     mem       = string
     disk_size = number
+    server_group : string
     additional_disks = map(object({
       size = number
       tier = string
@@ -121,12 +131,109 @@ variable "loadbalancer_plan" {
   default     = "development"
 }
 
+variable "loadbalancer_proxy_protocol" {
+  type    = bool
+  default = false
+}
+
+variable "loadbalancer_legacy_network" {
+  description = "If the loadbalancer should use the deprecated network field instead of networks blocks. You probably want to have this set to false"
+
+  type    = bool
+  default = false
+}
+
 variable "loadbalancers" {
   description = "Load balancers"
 
   type = map(object({
-    port            = number
-    backend_servers = list(string)
+    port                    = number
+    target_port             = number
+    allow_internal_frontend = optional(bool, false)
+    backend_servers         = list(string)
+  }))
+  default = {}
+}
+
+variable "server_groups" {
+  description = "Server groups"
+
+  type = map(object({
+    anti_affinity_policy = string
+  }))
+
+  default = {}
+}
+
+variable "router_enable" {
+  description = "If a router should be enabled and connected to the private network or not"
+
+  type    = bool
+  default = false
+}
+
+variable "gateways" {
+  description = "Gateways that should be connected to the router, requires router_enable is set to true"
+
+  type = map(object({
+    features = list(string)
+    plan     = optional(string)
+    connections = optional(map(object({
+      type = string
+      local_routes = optional(map(object({
+        type           = string
+        static_network = string
+      })), {})
+      remote_routes = optional(map(object({
+        type           = string
+        static_network = string
+      })), {})
+      tunnels = optional(map(object({
+        remote_address = string
+        ipsec_properties = optional(object({
+          child_rekey_time            = number
+          dpd_delay                   = number
+          dpd_timeout                 = number
+          ike_lifetime                = number
+          rekey_time                  = number
+          phase1_algorithms           = set(string)
+          phase1_dh_group_numbers     = set(string)
+          phase1_integrity_algorithms = set(string)
+          phase2_algorithms           = set(string)
+          phase2_dh_group_numbers     = set(string)
+          phase2_integrity_algorithms = set(string)
+        }))
+      })), {})
+    })), {})
+  }))
+  default = {}
+}
+
+variable "gateway_vpn_psks" {
+  description = "Separate variable for providing psks for connection tunnels"
+
+  type = map(object({
+    psk = string
+  }))
+  default   = {}
+  sensitive = true
+}
+
+variable "static_routes" {
+  description = "Static routes to apply to the router, requires router_enable is set to true"
+
+  type = map(object({
+    nexthop = string
+    route   = string
+  }))
+  default = {}
+}
+
+variable "network_peerings" {
+  description = "Other UpCloud private networks to peer with, requires router_enable is set to true"
+
+  type = map(object({
+    remote_network = string
   }))
   default = {}
 }

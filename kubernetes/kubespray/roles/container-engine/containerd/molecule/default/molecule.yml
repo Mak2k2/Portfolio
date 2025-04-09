@@ -1,33 +1,27 @@
 ---
-driver:
-  name: vagrant
-  provider:
-    name: libvirt
-lint: |
-  set -e
-  yamllint -c ../../../.yamllint .
+role_name_check: 1
 platforms:
-  - name: ubuntu20
-    box: generic/ubuntu2004
-    cpus: 1
-    memory: 1024
-    groups:
+  - cloud_image: ubuntu-2004
+    name: ubuntu20
+    vm_cpu_cores: 1
+    vm_memory: 1024
+    node_groups:
       - kube_control_plane
       - kube_node
       - k8s_cluster
-  - name: debian11
-    box: generic/debian11
-    cpus: 1
-    memory: 1024
-    groups:
+  - cloud_image: debian-11
+    name: debian11
+    vm_cpu_cores: 1
+    vm_memory: 1024
+    node_groups:
       - kube_control_plane
       - kube_node
       - k8s_cluster
-  - name: almalinux8
-    box: almalinux/8
-    cpus: 1
-    memory: 1024
-    groups:
+  - cloud_image: almalinux-9
+    name: almalinux9
+    vm_cpu_cores: 1
+    vm_memory: 1024
+    node_groups:
       - kube_control_plane
       - kube_node
       - k8s_cluster
@@ -39,11 +33,7 @@ provisioner:
     defaults:
       callbacks_enabled: profile_tasks
       timeout: 120
-  lint:
-    name: ansible-lint
-    options:
-      c: ../../../.ansible-lint
+  playbooks:
+    create: ../../../../../tests/cloud_playbooks/create-packet.yml
 verifier:
   name: testinfra
-  lint:
-    name: flake8

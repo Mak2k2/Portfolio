@@ -1,123 +1,117 @@
 ---
-- name: Master | restart kubelet
-  command: /bin/true
-  notify:
-    - Master | reload systemd
-    - Master | reload kubelet
-    - Master | wait for master static pods
-
-- name: Master | wait for master static pods
-  command: /bin/true
-  notify:
-    - Master | wait for the apiserver to be running
-    - Master | wait for kube-scheduler
-    - Master | wait for kube-controller-manager
-
-- name: Master | Restart apiserver
-  command: /bin/true
-  notify:
-    - Master | Remove apiserver container docker
-    - Master | Remove apiserver container containerd/crio
-    - Master | wait for the apiserver to be running
-
-- name: Master | Restart kube-scheduler
-  command: /bin/true
-  notify:
-    - Master | Remove scheduler container docker
-    - Master | Remove scheduler container containerd/crio
-    - Master | wait for kube-scheduler
-
-- name: Master | Restart kube-controller-manager
-  command: /bin/true
-  notify:
-    - Master | Remove controller manager container docker
-    - Master | Remove controller manager container containerd/crio
-    - Master | wait for kube-controller-manager
-
-- name: Master | reload systemd
-  systemd:
+- name: Control plane | reload systemd
+  systemd_service:
     daemon_reload: true
+  listen: Control plane | restart kubelet
 
-- name: Master | reload kubelet
+- name: Control plane | reload kubelet
   service:
     name: kubelet
     state: restarted
+  listen: Control plane | restart kubelet
 
-- name: Master | Remove apiserver container docker
-  shell: docker ps -af name=k8s_kube-apiserver* -q | xargs --no-run-if-empty docker rm -f
+- name: Control plane | Remove apiserver container docker
+  shell: "set -o pipefail && docker ps -af name=k8s_kube-apiserver* -q | xargs --no-run-if-empty docker rm -f"
+  args:
+    executable: /bin/bash
   register: remove_apiserver_container
   retries: 10
   until: remove_apiserver_container.rc == 0
   delay: 1
   when: container_manager == "docker"
+  listen: Control plane | Restart apiserver
 
-- name: Master | Remove apiserver container containerd/crio
-  shell: "{{ bin_dir }}/crictl pods --name kube-apiserver* -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+- name: Control plane | Remove apiserver container containerd/crio
+  shell: "set -o pipefail && {{ bin_dir }}/crictl pods --name 'kube-apiserver*' -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+  args:
+    executable: /bin/bash
   register: remove_apiserver_container
   retries: 10
   until: remove_apiserver_container.rc == 0
   delay: 1
   when: container_manager in ['containerd', 'crio']
+  listen: Control plane | Restart apiserver
 
-- name: Master | Remove scheduler container docker
-  shell: "{{ docker_bin_dir }}/docker ps -af name=k8s_kube-scheduler* -q | xargs --no-run-if-empty {{ docker_bin_dir }}/docker rm -f"
+- name: Control plane | Remove scheduler container docker
+  shell: "set -o pipefail && {{ docker_bin_dir }}/docker ps -af name=k8s_kube-scheduler* -q | xargs --no-run-if-empty {{ docker_bin_dir }}/docker rm -f"
+  args:
+    executable: /bin/bash
   register: remove_scheduler_container
   retries: 10
   until: remove_scheduler_container.rc == 0
   delay: 1
   when: container_manager == "docker"
+  listen: Control plane | Restart kube-scheduler
 
-- name: Master | Remove scheduler container containerd/crio
-  shell: "{{ bin_dir }}/crictl pods --name kube-scheduler* -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+- name: Control plane | Remove scheduler container containerd/crio
+  shell: "set -o pipefail && {{ bin_dir }}/crictl pods --name 'kube-scheduler*' -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+  args:
+    executable: /bin/bash
   register: remove_scheduler_container
   retries: 10
   until: remove_scheduler_container.rc == 0
   delay: 1
   when: container_manager in ['containerd', 'crio']
+  listen: Control plane | Restart kube-scheduler
 
-- name: Master | Remove controller manager container docker
-  shell: "{{ docker_bin_dir }}/docker ps -af name=k8s_kube-controller-manager* -q | xargs --no-run-if-empty {{ docker_bin_dir }}/docker rm -f"
+- name: Control plane | Remove controller manager container docker
+  shell: "set -o pipefail && {{ docker_bin_dir }}/docker ps -af name=k8s_kube-controller-manager* -q | xargs --no-run-if-empty {{ docker_bin_dir }}/docker rm -f"
+  args:
+    executable: /bin/bash
   register: remove_cm_container
   retries: 10
   until: remove_cm_container.rc == 0
   delay: 1
   when: container_manager == "docker"
+  listen: Control plane | Restart kube-controller-manager
 
-- name: Master | Remove controller manager container containerd/crio
-  shell: "{{ bin_dir }}/crictl pods --name kube-controller-manager* -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+- name: Control plane | Remove controller manager container containerd/crio
+  shell: "set -o pipefail && {{ bin_dir }}/crictl pods --name 'kube-controller-manager*' -q | xargs -I% --no-run-if-empty bash -c '{{ bin_dir }}/crictl stopp % && {{ bin_dir }}/crictl rmp %'"
+  args:
+    executable: /bin/bash
   register: remove_cm_container
   retries: 10
   until: remove_cm_container.rc == 0
   delay: 1
   when: container_manager in ['containerd', 'crio']
+  listen: Control plane | Restart kube-controller-manager
 
-- name: Master | wait for kube-scheduler
+- name: Control plane | wait for kube-scheduler
   vars:
-    endpoint: "{{ kube_scheduler_bind_address if kube_scheduler_bind_address != '0.0.0.0' else 'localhost' }}"
+    endpoint: "{{ kube_scheduler_bind_address if kube_scheduler_bind_address != '::' else 'localhost' }}"
   uri:
     url: https://{{ endpoint }}:10259/healthz
-    validate_certs: no
+    validate_certs: false
   register: scheduler_result
   until: scheduler_result.status == 200
   retries: 60
   delay: 1
+  listen:
+    - Control plane | restart kubelet
+    - Control plane | Restart kube-scheduler
 
-- name: Master | wait for kube-controller-manager
+- name: Control plane | wait for kube-controller-manager
   vars:
-    endpoint: "{{ kube_controller_manager_bind_address if kube_controller_manager_bind_address != '0.0.0.0' else 'localhost' }}"
+    endpoint: "{{ kube_controller_manager_bind_address if kube_controller_manager_bind_address != '::' else 'localhost' }}"
   uri:
     url: https://{{ endpoint }}:10257/healthz
-    validate_certs: no
+    validate_certs: false
   register: controller_manager_result
   until: controller_manager_result.status == 200
   retries: 60
   delay: 1
+  listen:
+    - Control plane | restart kubelet
+    - Control plane | Restart kube-controller-manager
 
-- name: Master | wait for the apiserver to be running
+- name: Control plane | wait for the apiserver to be running
   uri:
     url: "{{ kube_apiserver_endpoint }}/healthz"
-    validate_certs: no
+    validate_certs: false
   register: result
   until: result.status == 200
   retries: 60
   delay: 1
+  listen:
+    - Control plane | restart kubelet
+    - Control plane | Restart apiserver

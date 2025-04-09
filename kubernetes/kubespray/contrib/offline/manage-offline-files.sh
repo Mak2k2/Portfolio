@@ -17,7 +17,12 @@ rm -rf "${OFFLINE_FILES_DIR}"
 rm "${OFFLINE_FILES_ARCHIVE}"
 mkdir  "${OFFLINE_FILES_DIR}"
 
-wget -x -P "${OFFLINE_FILES_DIR}" -i "${FILES_LIST}"
+while read -r url; do
+  if ! wget -x -P "${OFFLINE_FILES_DIR}" "${url}"; then
+    exit 1
+  fi
+done < "${FILES_LIST}"
+
 tar -czvf "${OFFLINE_FILES_ARCHIVE}"  "${OFFLINE_FILES_DIR_NAME}"
 
 [ -n "$NO_HTTP_SERVER" ] && echo "skip to run nginx" && exit 0
@@ -38,7 +43,7 @@ sudo "${runtime}" container inspect nginx >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     sudo "${runtime}" run \
         --restart=always -d -p ${NGINX_PORT}:80 \
-        --volume "${OFFLINE_FILES_DIR}:/usr/share/nginx/html/download" \
-        --volume "$(pwd)"/nginx.conf:/etc/nginx/nginx.conf \
+        --volume "${OFFLINE_FILES_DIR}":/usr/share/nginx/html/download \
+        --volume "${CURRENT_DIR}"/nginx.conf:/etc/nginx/nginx.conf \
         --name nginx nginx:alpine
 fi

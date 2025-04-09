@@ -1,62 +1,54 @@
 ---
-- name: restart etcd
-  command: /bin/true
-  notify:
-    - Backup etcd data
-    - etcd | reload systemd
-    - reload etcd
-    - wait for etcd up
-    - Cleanup etcd backups
+- name: Backup etcd
+  import_tasks: backup.yml
 
-- name: restart etcd-events
-  command: /bin/true
-  notify:
-    - etcd | reload systemd
-    - reload etcd-events
-    - wait for etcd-events up
-
-- import_tasks: backup.yml
-
-- name: etcd | reload systemd
-  systemd:
-    daemon_reload: true
-
-- name: reload etcd
-  service:
+- name: Restart etcd
+  systemd_service:
     name: etcd
     state: restarted
-  when: is_etcd_master
+    daemon_reload: true
+  when: ('etcd' in group_names)
+  throttle: "{{ groups['etcd'] | length // 2 }}"
+  # Etcd cluster MUST have an odd number of members
+  # Truncated integer division by 2 will always return (majority - 1) which
+  # means the cluster will keep quorum and stay available
 
-- name: reload etcd-events
-  service:
+- name: Restart etcd-events
+  systemd_service:
     name: etcd-events
     state: restarted
-  when: is_etcd_master
+    daemon_reload: true
+  # TODO: this seems odd. etcd-events should be a different group possibly ?
+  when: ('etcd' in group_names)
+  throttle: "{{ groups['etcd'] | length // 2 }}"
 
-- name: wait for etcd up
+- name: Wait for etcd up
   uri:
-    url: "https://{% if is_etcd_master %}{{ etcd_address }}{% else %}127.0.0.1{% endif %}:2379/health"
-    validate_certs: no
+    url: "https://{% if 'etcd' in group_names %}{{ etcd_address | ansible.utils.ipwrap }}{% else %}127.0.0.1{% endif %}:2379/health"
+    validate_certs: false
     client_cert: "{{ etcd_cert_dir }}/member-{{ inventory_hostname }}.pem"
     client_key: "{{ etcd_cert_dir }}/member-{{ inventory_hostname }}-key.pem"
   register: result
   until: result.status is defined and result.status == 200
   retries: 60
   delay: 1
+  listen: Restart etcd
 
-- import_tasks: backup_cleanup.yml
+- name: Cleanup etcd backups
+  import_tasks: backup_cleanup.yml
 
-- name: wait for etcd-events up
+- name: Wait for etcd-events up
   uri:
-    url: "https://{% if is_etcd_master %}{{ etcd_address }}{% else %}127.0.0.1{% endif %}:2383/health"
-    validate_certs: no
+    url: "https://{% if 'etcd' in group_names %}{{ etcd_address | ansible.utils.ipwrap }}{% else %}127.0.0.1{% endif %}:2383/health"
+    validate_certs: false
     client_cert: "{{ etcd_cert_dir }}/member-{{ inventory_hostname }}.pem"
     client_key: "{{ etcd_cert_dir }}/member-{{ inventory_hostname }}-key.pem"
   register: result
   until: result.status is defined and result.status == 200
   retries: 60
   delay: 1
+  listen: Restart etcd-events
 
-- name: set etcd_secret_changed
+- name: Set etcd_secret_changed
   set_fact:
     etcd_secret_changed: true

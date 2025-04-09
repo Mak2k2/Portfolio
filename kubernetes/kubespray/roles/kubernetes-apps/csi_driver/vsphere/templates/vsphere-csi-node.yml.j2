@@ -17,6 +17,7 @@ spec:
         app: vsphere-csi-node
         role: vsphere-csi
     spec:
+      priorityClassName: system-node-critical
       nodeSelector:
         kubernetes.io/os: linux
 {% if vsphere_csi_node_affinity %}
@@ -39,6 +40,10 @@ spec:
         - "--v=5"
         - "--csi-address=$(ADDRESS)"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+{% if vsphere_csi_node_driver_registrar_resources | length > 0 %}
+        resources:
+          {{ vsphere_csi_node_driver_registrar_resources | default({}) | to_nice_yaml | trim | indent(width=10) }}
+{% endif %}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
@@ -57,14 +62,16 @@ spec:
             - --mode=kubelet-registration-probe
           initialDelaySeconds: 3
       - name: vsphere-csi-node
-        image: {{ gcr_image_repo }}/cloud-provider-vsphere/csi/release/driver:{{ vsphere_csi_driver_image_tag }}
+        image: {{ kube_image_repo }}/csi-vsphere/driver:{{ vsphere_csi_driver_image_tag }}
         imagePullPolicy: {{ k8s_image_pull_policy }}
         args:
           - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
           - "--fss-namespace={{ vsphere_csi_namespace }}"
-          - "--supervisor-fss-namespace={{ vsphere_csi_namespace }}"
-          - "--use-gocsi=false"
         imagePullPolicy: "Always"
+{% if vsphere_csi_driver_resources | length > 0 %}
+        resources:
+          {{ vsphere_csi_driver_resources | default({}) | to_nice_yaml | trim | indent(width=10) }}
+{% endif %}
         env:
         - name: NODE_NAME
           valueFrom:
@@ -84,6 +91,8 @@ spec:
           value: "true"
         - name: LOGGER_LEVEL
           value: "PRODUCTION" # Options: DEVELOPMENT, PRODUCTION
+        - name: GODEBUG
+          value: x509sha1=1
         - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
           value: "1"
         securityContext:
@@ -123,6 +132,10 @@ spec:
           - "--v=4"
 {% endif %}
           - "--csi-address=/csi/csi.sock"
+{% if vsphere_csi_liveness_probe_ds_resources | length > 0 %}
+        resources:
+          {{ vsphere_csi_liveness_probe_ds_resources | default({}) | to_nice_yaml | trim | indent(width=10) }}
+{% endif %}
         volumeMounts:
         - name: plugin-dir
           mountPath: /csi

@@ -61,9 +61,6 @@ spec:
         kubernetes.io/os: linux
       hostNetwork: true
       tolerations:
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
@@ -129,6 +126,10 @@ spec:
           - name: TYPHA_PROMETHEUSMETRICSPORT
             value: "{{ typha_prometheusmetricsport }}"
 {% endif %}
+{% if calico_ipam_host_local %}
+          - name: USE_POD_CIDR
+            value: "true"
+{% endif %}
 {% if typha_secure %}
         volumeMounts:
           - mountPath: /etc/typha
@@ -139,11 +140,6 @@ spec:
             name: cacert
             readOnly: true
 {% endif %}
-          # Needed for version >=3.7 when the 'host-local' ipam is used
-          # Should never happen given templates/cni-calico.conflist.j2
-          # Configure route aggregation based on pod CIDR.
-          # - name: USE_POD_CIDR
-          #   value: "true"
         livenessProbe:
           httpGet:
             path: /liveness

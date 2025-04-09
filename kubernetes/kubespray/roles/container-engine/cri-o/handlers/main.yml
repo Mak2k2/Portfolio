@@ -1,16 +1,12 @@
 ---
-- name: restart crio
-  command: /bin/true
-  notify:
-    - CRI-O | reload systemd
-    - CRI-O | reload crio
-
 - name: CRI-O | reload systemd
-  systemd:
+  systemd_service:
     daemon_reload: true
+  listen: Restart crio
 
 - name: CRI-O | reload crio
   service:
     name: crio
     state: restarted
-    enabled: yes
+    enabled: true
+  listen: Restart crio

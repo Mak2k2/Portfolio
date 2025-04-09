@@ -1,35 +1,31 @@
 ---
-- name: restart and enable cri-dockerd
-  command: /bin/true
-  notify:
-    - cri-dockerd | reload systemd
-    - cri-dockerd | restart docker.service
-    - cri-dockerd | reload cri-dockerd.socket
-    - cri-dockerd | reload cri-dockerd.service
-    - cri-dockerd | enable cri-dockerd service
-
-- name: cri-dockerd | reload systemd
-  systemd:
+- name: Cri-dockerd | reload systemd
+  systemd_service:
     name: cri-dockerd
     daemon_reload: true
-    masked: no
+    masked: false
+  listen: Restart and enable cri-dockerd
 
-- name: cri-dockerd | restart docker.service
+- name: Cri-dockerd | restart docker.service
   service:
     name: docker.service
     state: restarted
+  listen: Restart and enable cri-dockerd
 
-- name: cri-dockerd | reload cri-dockerd.socket
+- name: Cri-dockerd | reload cri-dockerd.socket
   service:
     name: cri-dockerd.socket
     state: restarted
+  listen: Restart and enable cri-dockerd
 
-- name: cri-dockerd | reload cri-dockerd.service
+- name: Cri-dockerd | reload cri-dockerd.service
   service:
     name: cri-dockerd.service
     state: restarted
+  listen: Restart and enable cri-dockerd
 
-- name: cri-dockerd | enable cri-dockerd service
+- name: Cri-dockerd | enable cri-dockerd service
   service:
     name: cri-dockerd.service
-    enabled: yes
+    enabled: true
+  listen: Restart and enable cri-dockerd

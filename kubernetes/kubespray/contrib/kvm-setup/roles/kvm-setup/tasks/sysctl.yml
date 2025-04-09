@@ -1,6 +1,6 @@
 ---
 - name: Load br_netfilter module
-  modprobe:
+  community.general.modprobe:
     name: br_netfilter
     state: present
   register: br_netfilter
@@ -20,25 +20,25 @@
       br-netfilter
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   when: br_netfilter is defined
 
 
 - name: Enable net.ipv4.ip_forward in sysctl
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.ip_forward
     value: 1
     sysctl_file: "{{ sysctl_file_path }}"
     state: present
-    reload: yes
+    reload: true
 
 - name: Set bridge-nf-call-{arptables,iptables} to 0
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item }}"
     state: present
     value: 0
     sysctl_file: "{{ sysctl_file_path }}"
-    reload: yes
+    reload: true
   with_items:
     - net.bridge.bridge-nf-call-arptables
     - net.bridge.bridge-nf-call-ip6tables

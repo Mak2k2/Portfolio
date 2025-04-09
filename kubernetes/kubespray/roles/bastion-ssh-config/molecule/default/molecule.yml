@@ -1,26 +1,18 @@
 ---
+role_name_check: 1
 dependency:
   name: galaxy
-lint: |
-  set -e
-  yamllint -c ../../.yamllint .
-driver:
-  name: vagrant
-  provider:
-    name: libvirt
 platforms:
   - name: bastion-01
-    box: generic/ubuntu2004
-    cpus: 1
-    memory: 512
+    cloud_image: ubuntu-2004
+    vm_cpu_cores: 1
+    vm_memory: 512
 provisioner:
   name: ansible
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
       timeout: 120
-  lint:
-    name: ansible-lint
   inventory:
     hosts:
       all:
@@ -29,7 +21,7 @@ provisioner:
           bastion:
             hosts:
               bastion-01:
+  playbooks:
+    create: ../../../../tests/cloud_playbooks/create-packet.yml
 verifier:
   name: testinfra
-  lint:
-    name: flake8

@@ -20,7 +20,11 @@ data:
     # In case you want to use TLS in etcd, uncomment the 'ca-file' line
     # and create a kubernetes secret by following the tutorial in
     # https://cilium.link/etcd-config
+{% if cilium_version | regex_replace('v') is version('1.17.0', '>=') %}
+    trusted-ca-file: "{{ cilium_cert_dir }}/ca_cert.crt"
+{% else %}
     ca-file: "{{ cilium_cert_dir }}/ca_cert.crt"
+{% endif %}
 
     # In case you want client to server authentication, uncomment the following
     # lines and create a kubernetes secret by following the tutorial in
@@ -69,6 +73,13 @@ data:
   # custom-cni-conf to "true", otherwise Cilium may overwrite the configuration.
   custom-cni-conf: "false"
 
+{% if cilium_version is version('1.14.0', '>=') %}
+  # Tell the agent to generate and write a CNI configuration file
+  write-cni-conf-when-ready: /host/etc/cni/net.d/05-cilium.conflist
+  cni-exclusive: "{{ cilium_cni_exclusive }}"
+  cni-log-file: "{{ cilium_cni_log_file }}"
+{% endif %}
+
   # If you want cilium monitor to aggregate tracing for packets, set this level
   # to "low", "medium", or "maximum". The higher the level, the less packets
   # that will be seen in monitor output.
@@ -104,7 +115,7 @@ data:
   #
   # If this option is set to "false" during an upgrade from 1.3 or earlier to
   # 1.4 or later, then it may cause one-time disruptions during the upgrade.
-  preallocate-bpf-maps: "{{cilium_preallocate_bpf_maps}}"
+  preallocate-bpf-maps: "{{ cilium_preallocate_bpf_maps }}"
 
   # Regular expression matching compatible Istio sidecar istio-proxy
   # container image names
@@ -115,16 +126,33 @@ data:
   #   - disabled
   #   - vxlan (default)
   #   - geneve
+{% if cilium_version is version('1.14.0', '<') %}
   tunnel: "{{ cilium_tunnel_mode }}"
+{% elif cilium_version is version('1.14.0', '>=') and cilium_tunnel_mode == 'disabled' %}
+  routing-mode: 'native'
+{% elif cilium_version is version('1.14.0', '>=') and cilium_tunnel_mode != 'disabled' %}
+  routing-mode: 'tunnel'
+  tunnel-protocol: "{{ cilium_tunnel_mode }}"
+{% endif %}
+
+  ## DSR setting
+  bpf-lb-mode: "{{ cilium_loadbalancer_mode }}"
+
+  # l2
+  enable-l2-announcements: "{{ cilium_l2announcements }}"
 
   # Enable Bandwidth Manager
-  # Cilium’s bandwidth manager supports the kubernetes.io/egress-bandwidth Pod annotation.
+  # Cilium's bandwidth manager supports the kubernetes.io/egress-bandwidth Pod annotation.
   # Bandwidth enforcement currently does not work in combination with L7 Cilium Network Policies.
   # In case they select the Pod at egress, then the bandwidth enforcement will be disabled for those Pods.
   # Bandwidth Manager requires a v5.1.x or more recent Linux kernel.
 {% if cilium_enable_bandwidth_manager %}
   enable-bandwidth-manager: "true"
 {% endif %}
+
+  # Host Firewall and Policy Audit Mode
+  enable-host-firewall: "{{ cilium_enable_host_firewall | capitalize }}"
+  policy-audit-mode: "{{ cilium_policy_audit_mode | capitalize }}"
 
   # Name of the cluster. Only relevant when building a mesh of clusters.
   cluster-name: "{{ cilium_cluster_name }}"
@@ -138,17 +166,24 @@ data:
 
 # `wait-bpf-mount` is removed after v1.10.4
 # https://github.com/cilium/cilium/commit/d2217045cb3726a7f823174e086913b69b8090da
-{% if cilium_version | regex_replace('v') is version('1.10.4', '<') %}
+{% if cilium_version is version('1.10.4', '<') %}
   # wait-bpf-mount makes init container wait until bpf filesystem is mounted
   wait-bpf-mount: "false"
 {% endif %}
 
+# `kube-proxy-replacement=partial|strict|disabled` is deprecated since january 2024 and unsupported in 1.16.
+# Replaced by `kube-proxy-replacement=true|false`
+# https://github.com/cilium/cilium/pull/31286
+{% if cilium_version is version('1.16', '<') %}
   kube-proxy-replacement: "{{ cilium_kube_proxy_replacement }}"
+{% else %}
+  kube-proxy-replacement: "{% if (cilium_kube_proxy_replacement == 'strict') or (cilium_kube_proxy_replacement | bool) or (cilium_kube_proxy_replacement | string | lower == 'true') %}true{% else %}false{% endif %}"
+{% endif %}
 
 # `native-routing-cidr` is deprecated in 1.10, removed in 1.12.
 # Replaced by `ipv4-native-routing-cidr`
 # https://github.com/cilium/cilium/pull/16695
-{% if cilium_version | regex_replace('v') is version('1.12', '<') %}
+{% if cilium_version is version('1.12', '<') %}
   native-routing-cidr: "{{ cilium_native_routing_cidr }}"
 {% else %}
 {% if cilium_native_routing_cidr | length %}
@@ -172,6 +207,12 @@ data:
 {% for hubble_metrics_cycle in cilium_hubble_metrics %}
     {{ hubble_metrics_cycle }}
 {% endfor %}
+{% endif %}
+{% if cilium_hubble_event_buffer_capacity is defined %}
+  hubble-event-buffer-capacity: "{{ cilium_hubble_event_buffer_capacity }}"
+{% endif %}
+{% if cilium_hubble_event_queue_size is defined %}
+  hubble-event-queue-size: "{{ cilium_hubble_event_queue_size }}"
 {% endif %}
   hubble-listen-address: ":4244"
 {% if cilium_enable_hubble and cilium_hubble_install %}
@@ -205,10 +246,18 @@ data:
 
   # IPAM settings
   ipam: "{{ cilium_ipam_mode }}"
+{% if cilium_ipam_mode == "cluster-pool" %}
+  cluster-pool-ipv4-cidr: "{{ cilium_pool_cidr | default(kube_pods_subnet) }}"
+  cluster-pool-ipv4-mask-size: "{{ cilium_pool_mask_size | default(kube_network_node_prefix) }}"
+{% if cilium_enable_ipv6 %}
+  cluster-pool-ipv6-cidr: "{{ cilium_pool_cidr_ipv6 | default(kube_pods_subnet_ipv6) }}"
+  cluster-pool-ipv6-mask-size: "{{ cilium_pool_mask_size_ipv6 | default(kube_network_node_prefix_ipv6) }}"
+{% endif %}
+{% endif %}
 
   agent-health-port: "{{ cilium_agent_health_port }}"
 
-{% if cilium_version | regex_replace('v') is version('1.11', '>=') and cilium_cgroup_host_root != '' %}
+{% if cilium_version is version('1.11', '>=') and cilium_cgroup_host_root != '' %}
   cgroup-root: "{{ cilium_cgroup_host_root }}"
 {% endif %}
 
@@ -229,6 +278,8 @@ data:
 
   enable-bpf-clock-probe: "{{ cilium_enable_bpf_clock_probe }}"
 
+  enable-bgp-control-plane: "{{ cilium_enable_bgp_control_plane }}"
+
   disable-cnp-status-updates: "{{ cilium_disable_cnp_status_updates }}"
 {% if cilium_ip_masq_agent_enable %}
 ---
@@ -243,6 +294,6 @@ data:
 {% for cidr in cilium_non_masquerade_cidrs %}
       - {{ cidr }}
 {% endfor %}
-    masqLinkLocal: {{ cilium_masq_link_local|bool }}
+    masqLinkLocal: {{ cilium_masq_link_local | bool }}
     resyncInterval: "{{ cilium_ip_masq_resync_interval }}"
 {% endif %}

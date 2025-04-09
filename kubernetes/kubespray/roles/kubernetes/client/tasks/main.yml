@@ -1,6 +1,7 @@
 ---
 - name: Set external kube-apiserver endpoint
   set_fact:
+    # noqa: jinja[spacing]
     external_apiserver_address: >-
       {%- if loadbalancer_apiserver is defined and loadbalancer_apiserver.address is defined -%}
       {{ loadbalancer_apiserver.address }}
@@ -9,9 +10,10 @@
       {%- else -%}
       {{ kube_apiserver_access_address }}
       {%- endif -%}
+    # noqa: jinja[spacing]
     external_apiserver_port: >-
       {%- if loadbalancer_apiserver is defined and loadbalancer_apiserver.address is defined and loadbalancer_apiserver.port is defined -%}
-      {{ loadbalancer_apiserver.port|default(kube_apiserver_port) }}
+      {{ loadbalancer_apiserver.port | default(kube_apiserver_port) }}
       {%- else -%}
       {{ kube_apiserver_port }}
       {%- endif -%}
@@ -28,9 +30,9 @@
   copy:
     src: "{{ kube_config_dir }}/admin.conf"
     dest: "{{ ansible_env.HOME | default('/root') }}/.kube/config"
-    remote_src: yes
+    remote_src: true
     mode: "0600"
-    backup: yes
+    backup: true
 
 - name: Create kube artifacts dir
   file:
@@ -39,8 +41,8 @@
     state: directory
   delegate_to: localhost
   connection: local
-  become: no
-  run_once: yes
+  become: false
+  run_once: true
   when: kubeconfig_localhost
 
 - name: Wait for k8s apiserver
@@ -52,7 +54,7 @@
 - name: Get admin kubeconfig from remote host
   slurp:
     src: "{{ kube_config_dir }}/admin.conf"
-  run_once: yes
+  run_once: true
   register: raw_admin_kubeconfig
   when: kubeconfig_localhost
 
@@ -69,44 +71,44 @@
     user_certs: "{{ admin_kubeconfig['users'][0]['user'] }}"
     username: "kubernetes-admin-{{ cluster_name }}"
     context: "kubernetes-admin-{{ cluster_name }}@{{ cluster_name }}"
-    override_cluster_name: "{{ { 'clusters': [ { 'cluster': (cluster_infos|combine({'server': 'https://'+external_apiserver_address+':'+(external_apiserver_port|string)})), 'name': cluster_name } ] } }}"
-    override_context: "{{ { 'contexts': [ { 'context': { 'user': username, 'cluster': cluster_name }, 'name': context } ], 'current-context': context } }}"
-    override_user: "{{ { 'users': [ { 'name': username, 'user': user_certs  } ] } }}"
+    override_cluster_name: "{{ {'clusters': [{'cluster': (cluster_infos | combine({'server': 'https://' + (external_apiserver_address | ansible.utils.ipwrap) + ':' + (external_apiserver_port | string)})), 'name': cluster_name}]} }}"
+    override_context: "{{ {'contexts': [{'context': {'user': username, 'cluster': cluster_name}, 'name': context}], 'current-context': context} }}"
+    override_user: "{{ {'users': [{'name': username, 'user': user_certs}]} }}"
   when: kubeconfig_localhost
 
 - name: Write admin kubeconfig on ansible host
   copy:
     content: "{{ final_admin_kubeconfig | to_nice_yaml(indent=2) }}"
     dest: "{{ artifacts_dir }}/admin.conf"
-    mode: 0600
+    mode: "0600"
   delegate_to: localhost
   connection: local
-  become: no
-  run_once: yes
+  become: false
+  run_once: true
   when: kubeconfig_localhost
 
 - name: Copy kubectl binary to ansible host
   fetch:
     src: "{{ bin_dir }}/kubectl"
     dest: "{{ artifacts_dir }}/kubectl"
-    flat: yes
-    validate_checksum: no
+    flat: true
+    validate_checksum: false
   register: copy_binary_result
   until: copy_binary_result is not failed
   retries: 20
-  become: no
-  run_once: yes
+  become: false
+  run_once: true
   when: kubectl_localhost
 
-- name: create helper script kubectl.sh on ansible host
+- name: Create helper script kubectl.sh on ansible host
   copy:
     content: |
       #!/bin/bash
       ${BASH_SOURCE%/*}/kubectl --kubeconfig=${BASH_SOURCE%/*}/admin.conf "$@"
     dest: "{{ artifacts_dir }}/kubectl.sh"
-    mode: 0755
-  become: no
-  run_once: yes
+    mode: "0755"
+  become: false
+  run_once: true
   delegate_to: localhost
   connection: local
   when: kubectl_localhost and kubeconfig_localhost

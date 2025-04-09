@@ -1,4 +1,10 @@
-# See roles/network_plugin/kube-router//defaults/main.yml
+# See roles/network_plugin/kube-router/defaults/main.yml
+
+# Kube router version
+# Default to v2
+# kube_router_version: "v2.0.0"
+# Uncomment to use v1 (Deprecated)
+# kube_router_version: "v1.6.0"
 
 # Enables Pod Networking -- Advertises and learns the routes to Pods via iBGP
 # kube_router_run_router: true
@@ -16,8 +22,11 @@
 # Add External IP of service to the RIB so that it gets advertised to the BGP peers.
 # kube_router_advertise_external_ip: false
 
-# Add LoadbBalancer IP of service status as set by the LB provider to the RIB so that it gets advertised to the BGP peers.
+# Add LoadBalancer IP of service status as set by the LB provider to the RIB so that it gets advertised to the BGP peers.
 # kube_router_advertise_loadbalancer_ip: false
+
+# Enables BGP graceful restarts
+# kube_router_bgp_graceful_restart: true
 
 # Adjust manifest of kube-router daemonset template with DSR needed changes
 # kube_router_enable_dsr: false

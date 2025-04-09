@@ -8,7 +8,7 @@ metadata:
   namespace: kube-system
   annotations:
     prometheus.io/scrape: 'true'
-    prometheus.io/port: "9091"
+    prometheus.io/port: "{{ cilium_hubble_scrape_port }}"
   labels:
     k8s-app: hubble
 spec:
@@ -21,6 +21,30 @@ spec:
     targetPort: hubble-metrics
   selector:
     k8s-app: cilium
+---
+# Source: cilium/templates/hubble-relay/metrics-service.yaml
+# We use a separate service from hubble-relay which can be exposed externally
+kind: Service
+apiVersion: v1
+metadata:
+  name: hubble-relay-metrics
+  namespace: kube-system
+  labels:
+    k8s-app: hubble-relay
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: "9966"
+spec:
+  clusterIP: None
+  type: ClusterIP
+  selector:
+    k8s-app: hubble-relay
+  ports:
+  - name: metrics
+    port: 9966
+    protocol: TCP
+    targetPort: prometheus
+
 {% endif %}
 ---
 # Source: cilium/templates/hubble-relay-service.yaml
@@ -37,9 +61,14 @@ spec:
     k8s-app: hubble-relay
   ports:
   - protocol: TCP
+    {% if cilium_hubble_tls_generate -%}
+    port: 443
+    {% else -%}
     port: 80
+    {% endif -%}
     targetPort: 4245
 ---
+{% if cilium_enable_hubble_ui %}
 # Source: cilium/templates/hubble-ui-service.yaml
 kind: Service
 apiVersion: v1
@@ -56,3 +85,22 @@ spec:
       port: 80
       targetPort: 8081
   type: ClusterIP
+---
+{% endif %}
+# Source: cilium/templates/hubble/peer-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubble-peer
+  namespace: kube-system
+  labels:
+    k8s-app: cilium
+spec:
+  selector:
+    k8s-app: cilium
+  ports:
+  - name: peer-service
+    port: 443
+    protocol: TCP
+    targetPort: 4244
+  internalTrafficPolicy: Local

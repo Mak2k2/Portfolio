@@ -9,18 +9,18 @@ metadata:
 spec:
   selector:
     matchLabels:
-      k8s-app: nodelocaldns
+      k8s-app: node-local-dns
   template:
     metadata:
       labels:
-        k8s-app: nodelocaldns
+        k8s-app: node-local-dns
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '{{ nodelocaldns_prometheus_port }}'
     spec:
       nodeSelector:
         {{ nodelocaldns_ds_nodeselector }}
-      priorityClassName: system-cluster-critical
+      priorityClassName: system-node-critical
       serviceAccountName: nodelocaldns
       hostNetwork: true
       dnsPolicy: Default  # Don't use cluster DNS.

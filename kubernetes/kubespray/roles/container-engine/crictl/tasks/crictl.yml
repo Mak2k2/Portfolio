@@ -1,5 +1,5 @@
 ---
-- name: crictl | Download crictl
+- name: Crictl | Download crictl
   include_tasks: "../../../download/tasks/download_file.yml"
   vars:
     download: "{{ download_defaults | combine(downloads.crictl) }}"
@@ -9,13 +9,13 @@
     src: crictl.yaml.j2
     dest: /etc/crictl.yaml
     owner: root
-    mode: 0644
+    mode: "0644"
 
 - name: Copy crictl binary from download dir
   copy:
     src: "{{ local_release_dir }}/crictl"
     dest: "{{ bin_dir }}/crictl"
-    mode: 0755
+    mode: "0755"
     remote_src: true
   notify:
     - Get crictl completion

@@ -98,7 +98,7 @@ PARSERS = {}
 def _clean_dc(dcname):
     # Consul DCs are strictly alphanumeric with underscores and hyphens -
     # ensure that the consul_dc attribute meets these requirements.
-    return re.sub('[^\w_\-]', '-', dcname)
+    return re.sub(r'[^\w_\-]', '-', dcname)
 
 
 def iterhosts(resources):
@@ -194,9 +194,19 @@ def parse_bool(string_form):
     else:
         raise ValueError('could not convert %r to a bool' % string_form)
 
+def sanitize_groups(groups):
+    _groups = []
+    chars_to_replace = ['+', '-', '=', '.', '/', ' ']
+    for i in groups:
+        _i = i
+        for char in chars_to_replace:
+            _i = _i.replace(char, '_')
+        _groups.append(_i)
+    groups.clear()
+    groups.extend(_groups)
 
-@parses('metal_device')
-def metal_device(resource, tfvars=None):
+@parses('equinix_metal_device')
+def equinix_metal_device(resource, tfvars=None):
     raw_attrs = resource['primary']['attributes']
     name = raw_attrs['hostname']
     groups = []
@@ -220,7 +230,7 @@ def metal_device(resource, tfvars=None):
         'ipv6_address': raw_attrs['network.1.address'],
         'public_ipv6': raw_attrs['network.1.address'],
         'private_ipv4': raw_attrs['network.2.address'],
-        'provider': 'metal',
+        'provider': 'equinix',
     }
 
     if raw_attrs['operating_system'] == 'flatcar_stable':
@@ -228,13 +238,14 @@ def metal_device(resource, tfvars=None):
         attrs.update({'ansible_ssh_user': 'core'})
 
     # add groups based on attrs
-    groups.append('metal_operating_system=' + attrs['operating_system'])
-    groups.append('metal_locked=%s' % attrs['locked'])
-    groups.append('metal_state=' + attrs['state'])
-    groups.append('metal_plan=' + attrs['plan'])
+    groups.append('equinix_metal_operating_system_%s' % attrs['operating_system'])
+    groups.append('equinix_metal_locked_%s' % attrs['locked'])
+    groups.append('equinix_metal_state_%s' % attrs['state'])
+    groups.append('equinix_metal_plan_%s' % attrs['plan'])
 
     # groups specific to kubespray
     groups = groups + attrs['tags']
+    sanitize_groups(groups)
 
     return name, attrs, groups
 
@@ -262,6 +273,7 @@ def openstack_host(resource, module_name):
         'access_ip_v4': raw_attrs['access_ip_v4'],
         'access_ip_v6': raw_attrs['access_ip_v6'],
         'access_ip': raw_attrs['access_ip_v4'],
+        'access_ip6': raw_attrs['access_ip_v6'],
         'ip': raw_attrs['network.0.fixed_ip_v4'],
         'flavor': parse_dict(raw_attrs, 'flavor',
                              sep='_'),
@@ -273,8 +285,6 @@ def openstack_host(resource, module_name):
         'network': parse_attr_list(raw_attrs, 'network'),
         'region': raw_attrs.get('region', ''),
         'security_groups': parse_list(raw_attrs, 'security_groups'),
-        # ansible
-        'ansible_ssh_port': 22,
         # workaround for an OpenStack bug where hosts have a different domain
         # after they're restarted
         'host_domain': 'novalocal',
@@ -289,10 +299,13 @@ def openstack_host(resource, module_name):
     if 'floating_ip' in raw_attrs:
         attrs['private_ipv4'] = raw_attrs['network.0.fixed_ip_v4']
 
+    if 'metadata.use_access_ip' in raw_attrs and raw_attrs['metadata.use_access_ip'] == "0":
+        attrs.pop('access_ip')
+
     try:
         if 'metadata.prefer_ipv6' in raw_attrs and raw_attrs['metadata.prefer_ipv6'] == "1":
             attrs.update({
-                'ansible_host': re.sub("[\[\]]", "", raw_attrs['access_ip_v6']),
+                'ansible_host': re.sub(r"[\[\]]", "", raw_attrs['access_ip_v6']),
                 'publicly_routable': True,
             })
         else:
@@ -307,7 +320,9 @@ def openstack_host(resource, module_name):
 
     # attrs specific to Ansible
     if 'metadata.ssh_user' in raw_attrs:
-        attrs['ansible_ssh_user'] = raw_attrs['metadata.ssh_user']
+        attrs['ansible_user'] = raw_attrs['metadata.ssh_user']
+    if 'metadata.ssh_port' in raw_attrs:
+        attrs['ansible_port'] = raw_attrs['metadata.ssh_port']
 
     if 'volume.#' in list(raw_attrs.keys()) and int(raw_attrs['volume.#']) > 0:
         device_index = 1
@@ -334,6 +349,8 @@ def openstack_host(resource, module_name):
     for group in attrs['metadata'].get('kubespray_groups', "").split(","):
         groups.append(group)
 
+    sanitize_groups(groups)
+
     return name, attrs, groups
 
 
@@ -352,7 +369,7 @@ def iter_host_ips(hosts, ips):
                 'ansible_host': ip,
             })
 
-        if 'use_access_ip' in host[1]['metadata'] and host[1]['metadata']['use_access_ip'] == "0":
+        if 'use_access_ip' in host[1]['metadata'] and host[1]['metadata']['use_access_ip'] == "0" and 'access_ip' in host[1]:
                 host[1].pop('access_ip')
 
         yield host

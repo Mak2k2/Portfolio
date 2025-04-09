@@ -31,14 +31,12 @@ spec:
       - key: node.cloudprovider.kubernetes.io/uninitialized
         value: "true"
         effect: NoSchedule
-      - key: node-role.kubernetes.io/master
-        effect: NoSchedule
       - key: node-role.kubernetes.io/control-plane
         effect: NoSchedule
       serviceAccountName: cloud-controller-manager
       containers:
         - name: openstack-cloud-controller-manager
-          image: {{ docker_image_repo }}/k8scloudprovider/openstack-cloud-controller-manager:{{ external_openstack_cloud_controller_image_tag }}
+          image: {{ external_openstack_cloud_controller_image_repo }}:{{ external_openstack_cloud_controller_image_tag }}
           args:
             - /bin/openstack-cloud-controller-manager
             - --v=1
@@ -46,7 +44,7 @@ spec:
             - --cloud-provider=openstack
             - --cluster-name={{ cluster_name }}
             - --use-service-account-credentials=true
-            - --bind-address=127.0.0.1
+            - --bind-address={{ external_openstack_cloud_controller_bind_address }}
 {% for key, value in external_openstack_cloud_controller_extra_args.items() %}
             - "{{ '--' + key + '=' + value }}"
 {% endfor %}
@@ -57,6 +55,13 @@ spec:
             - mountPath: /etc/ssl/certs
               name: ca-certs
               readOnly: true
+{% if ssl_ca_dirs | length %}
+{% for dir in ssl_ca_dirs %}
+            - name: {{ dir | regex_replace('^/(.*)$', '\\1' ) | regex_replace('/', '-') }}
+              mountPath: {{ dir }}
+              readOnly: true
+{% endfor %}
+{% endif %}
             - mountPath: /etc/config/cloud.conf
               name: cloud-config-volume
               readOnly: true
@@ -76,21 +81,32 @@ spec:
             - name: CLOUD_CONFIG
               value: /etc/config/cloud.conf
       hostNetwork: true
+{% if external_openstack_cloud_controller_dns_policy is defined %}
+      dnsPolicy: {{ external_openstack_cloud_controller_dns_policy }}
+{% endif %}
       volumes:
 {% if kubelet_flexvolumes_plugins_dir is defined %}
-      - hostPath:
+      - name: flexvolume-dir
+        hostPath:
           path: "{{ kubelet_flexvolumes_plugins_dir }}"
           type: DirectoryOrCreate
-        name: flexvolume-dir
 {% endif %}
-      - hostPath:
+      - name: k8s-certs
+        hostPath:
           path: /etc/kubernetes/pki
           type: DirectoryOrCreate
-        name: k8s-certs
-      - hostPath:
+      - name: ca-certs
+        hostPath:
           path: /etc/ssl/certs
           type: DirectoryOrCreate
-        name: ca-certs
+{% if ssl_ca_dirs | length %}
+{% for dir in ssl_ca_dirs %}
+      - name: {{ dir | regex_replace('^/(.*)$', '\\1' ) | regex_replace('/', '-') }}
+        hostPath:
+          path: {{ dir }}
+          type: DirectoryOrCreate
+{% endfor %}
+{% endif %}
       - name: cloud-config-volume
         secret:
           secretName: external-openstack-cloud-config

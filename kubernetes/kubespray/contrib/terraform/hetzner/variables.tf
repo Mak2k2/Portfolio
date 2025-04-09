@@ -3,7 +3,7 @@ variable "zone" {
 }
 variable "network_zone" {
   description = "The network zone where the cluster is running"
-  default = "eu-central"
+  default     = "eu-central"
 }
 
 variable "prefix" {
@@ -23,6 +23,12 @@ variable "machines" {
 variable "ssh_public_keys" {
   description = "Public SSH key which are injected into the VMs."
   type        = list(string)
+}
+
+variable "ssh_private_key_path" {
+  description = "Private SSH key which connect to the VMs."
+  type        = string
+  default     = "~/.ssh/id_rsa"
 }
 
 variable "ssh_whitelist" {

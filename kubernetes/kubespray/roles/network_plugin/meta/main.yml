@@ -1,6 +1,7 @@
 ---
 dependencies:
   - role: network_plugin/cni
+    when: kube_network_plugin != 'none'
 
   - role: network_plugin/cilium
     when: kube_network_plugin == 'cilium' or cilium_deploy_additionally | default(false) | bool
@@ -22,11 +23,6 @@ dependencies:
     tags:
       - weave
 
-  - role: network_plugin/canal
-    when: kube_network_plugin == 'canal'
-    tags:
-      - canal
-
   - role: network_plugin/macvlan
     when: kube_network_plugin == 'macvlan'
     tags:
@@ -41,6 +37,11 @@ dependencies:
     when: kube_network_plugin == 'kube-router'
     tags:
       - kube-router
+
+  - role: network_plugin/custom_cni
+    when: kube_network_plugin == 'custom_cni'
+    tags:
+      - custom_cni
 
   - role: network_plugin/multus
     when: kube_network_plugin_multus

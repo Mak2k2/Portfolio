@@ -34,8 +34,6 @@ etcd_script_dir: "{{ bin_dir }}/etcd-scripts"
 etcd_heartbeat_interval: "250"
 etcd_election_timeout: "5000"
 
-# etcd_snapshot_count: "10000"
-
 etcd_metrics: "basic"
 
 # Define in inventory to set a separate port for etcd to expose metrics on
@@ -107,9 +105,7 @@ etcd_retries: 4
 #   - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 #   - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 #   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-#   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
 #   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-#   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 #   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
 
 # ETCD 3.5.x issue
@@ -120,3 +116,13 @@ etcd_experimental_initial_corrupt_check: true
 # may contain some private data, so it is recommended to set it to false
 # in the production environment.
 unsafe_show_logs: false
+
+# Enable distributed tracing
+# https://etcd.io/docs/v3.5/op-guide/monitoring/#distributed-tracing
+etcd_experimental_enable_distributed_tracing: false
+etcd_experimental_distributed_tracing_sample_rate: 100
+etcd_experimental_distributed_tracing_address: "localhost:4317"
+etcd_experimental_distributed_tracing_service_name: etcd
+
+# The interval for etcd watch progress notify events
+etcd_experimental_watch_progress_notify_interval: 5s

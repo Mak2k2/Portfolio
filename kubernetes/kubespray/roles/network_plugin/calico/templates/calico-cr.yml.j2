@@ -2,6 +2,44 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
+  name: calico-cni-plugin
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - nodes
+      - namespaces
+    verbs:
+      - get
+  - apiGroups: [""]
+    resources:
+      - pods/status
+    verbs:
+      - patch
+  - apiGroups: [""]
+    resources:
+      - nodes/status
+    verbs:
+      - update
+  - apiGroups: ["crd.projectcalico.org"]
+    resources:
+      - blockaffinities
+      - ipamblocks
+      - ipamhandles
+      - clusterinformations
+      - ippools
+      - ipreservations
+      - ipamconfigs
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
   name: calico-node
   namespace: kube-system
 rules:
@@ -38,22 +76,20 @@ rules:
     verbs:
       # Needed for clearing NodeNetworkUnavailable flag.
       - patch
-{% if calico_datastore == "etcd" %}
-  - apiGroups:
-    - policy
-    resourceNames:
-    - privileged
-    resources:
-    - podsecuritypolicies
-    verbs:
-    - use
-{% elif calico_datastore == "kdd" %}
+{% if calico_datastore == "kdd" %}
       # Calico stores some configuration information in node annotations.
       - update
   # Watch for changes to Kubernetes NetworkPolicies.
   - apiGroups: ["networking.k8s.io"]
     resources:
       - networkpolicies
+    verbs:
+      - watch
+      - list
+  # Watch for changes to Kubernetes AdminNetworkPolicies.
+  - apiGroups: ["policy.networking.k8s.io"]
+    resources:
+      - adminnetworkpolicies
     verbs:
       - watch
       - list
@@ -78,6 +114,7 @@ rules:
       - globalfelixconfigs
       - felixconfigurations
       - bgppeers
+      - bgpfilters
       - globalbgpconfigs
       - bgpconfigurations
       - ippools
@@ -91,10 +128,17 @@ rules:
       - hostendpoints
       - blockaffinities
       - caliconodestatuses
+      - tiers
     verbs:
       - get
       - list
       - watch
+   # Calico creates some tiers on startup.
+  - apiGroups: ["crd.projectcalico.org"]
+    resources:
+      - tiers
+    verbs:
+      - create
   # Calico must create and update some CRDs on startup.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -144,6 +188,7 @@ rules:
       - ipamconfigs
     verbs:
       - get
+      - create
   # Block affinities must also be watchable by confd for route aggregation.
   - apiGroups: ["crd.projectcalico.org"]
     resources:
@@ -163,6 +208,6 @@ rules:
     resources:
       - serviceaccounts/token
     resourceNames:
-      - calico-node
+      - calico-cni-plugin
     verbs:
       - create

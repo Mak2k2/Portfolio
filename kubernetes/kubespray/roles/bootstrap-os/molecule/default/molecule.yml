@@ -1,57 +1,37 @@
 ---
+role_name_check: 1
 dependency:
   name: galaxy
-lint: |
-  set -e
-  yamllint -c ../../.yamllint .
-driver:
-  name: vagrant
-  provider:
-    name: libvirt
 platforms:
-  - name: ubuntu16
-    box: generic/ubuntu1604
-    cpus: 1
-    memory: 512
-  - name: ubuntu18
-    box: generic/ubuntu1804
-    cpus: 1
-    memory: 512
   - name: ubuntu20
-    box: generic/ubuntu2004
-    cpus: 1
-    memory: 512
-  - name: centos7
-    box: centos/7
-    cpus: 1
-    memory: 512
-  - name: almalinux8
-    box: almalinux/8
-    cpus: 1
-    memory: 512
-  - name: debian9
-    box: generic/debian9
-    cpus: 1
-    memory: 512
-  - name: debian10
-    box: generic/debian10
-    cpus: 1
-    memory: 512
+    cloud_image: ubuntu-2004
+    vm_cpu_cores: 1
+    vm_memory: 512
+  - name: ubuntu22
+    cloud_image: ubuntu-2204
+    vm_cpu_cores: 1
+    vm_memory: 512
+  - name: almalinux9
+    cloud_image: almalinux-9
+    vm_cpu_cores: 1
+    vm_memory: 512
+  - name: debian12
+    cloud_image: debian-12
+    vm_cpu_cores: 1
+    vm_memory: 512
 provisioner:
   name: ansible
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
       timeout: 120
-  lint:
-    name: ansible-lint
   inventory:
     group_vars:
       all:
         user:
           name: foo
           comment: My test comment
+  playbooks:
+    create: ../../../../tests/cloud_playbooks/create-packet.yml
 verifier:
   name: testinfra
-  lint:
-    name: flake8

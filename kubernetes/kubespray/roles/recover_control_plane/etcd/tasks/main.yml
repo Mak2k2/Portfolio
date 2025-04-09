@@ -4,9 +4,9 @@
   register: etcd_endpoint_health
   ignore_errors: true  # noqa ignore-errors
   changed_when: false
-  check_mode: no
+  check_mode: false
   environment:
-    ETCDCTL_API: 3
+    ETCDCTL_API: "3"
     ETCDCTL_ENDPOINTS: "{{ etcd_access_addresses }}"
     ETCDCTL_CERT: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}.pem"
     ETCDCTL_KEY: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}-key.pem"
@@ -26,7 +26,8 @@
   when:
     - groups['broken_etcd']
 
-- include_tasks: recover_lost_quorum.yml
+- name: Recover lost etcd quorum
+  include_tasks: recover_lost_quorum.yml
   when:
     - groups['broken_etcd']
     - not has_quorum
@@ -38,12 +39,12 @@
   delegate_to: "{{ item }}"
   with_items: "{{ groups['broken_etcd'] }}"
   ignore_errors: true  # noqa ignore-errors
+  ignore_unreachable: true
   when:
     - groups['broken_etcd']
     - has_quorum
 
 - name: Delete old certificates
-  # noqa 302 ignore-error - rm is ok here for now
   shell: "rm {{ etcd_cert_dir }}/*{{ item }}*"
   with_items: "{{ groups['broken_etcd'] }}"
   register: delete_old_cerificates
@@ -63,9 +64,9 @@
   command: "{{ bin_dir }}/etcdctl member list"
   register: member_list
   changed_when: false
-  check_mode: no
+  check_mode: false
   environment:
-    ETCDCTL_API: 3
+    ETCDCTL_API: "3"
     ETCDCTL_ENDPOINTS: "{{ etcd_access_addresses }}"
     ETCDCTL_CERT: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}.pem"
     ETCDCTL_KEY: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}-key.pem"
@@ -76,9 +77,9 @@
     - has_quorum
 
 - name: Remove broken cluster members
-  command: "{{ bin_dir }}/etcdctl member remove {{ item[1].replace(' ','').split(',')[0] }}"
+  command: "{{ bin_dir }}/etcdctl member remove {{ item[1].replace(' ', '').split(',')[0] }}"
   environment:
-    ETCDCTL_API: 3
+    ETCDCTL_API: "3"
     ETCDCTL_ENDPOINTS: "{{ etcd_access_addresses }}"
     ETCDCTL_CERT: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}.pem"
     ETCDCTL_KEY: "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}-key.pem"
@@ -90,4 +91,4 @@
     - groups['broken_etcd']
     - not healthy
     - has_quorum
-    - hostvars[item[0]]['etcd_member_name'] == item[1].replace(' ','').split(',')[2]
+    - hostvars[item[0]]['etcd_member_name'] == item[1].replace(' ', '').split(',')[2]

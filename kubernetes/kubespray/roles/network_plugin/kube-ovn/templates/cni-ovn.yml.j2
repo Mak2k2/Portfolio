@@ -1,10 +1,51 @@
+---
 apiVersion: v1
-kind: ConfigMap
+kind: ServiceAccount
 metadata:
-  name: ovn-config
+  name: ovn-ovs
   namespace: kube-system
-data:
-  defaultNetworkType: '{{ kube_ovn_network_type }}'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.k8s.io/system-only: "true"
+  name: system:ovn-ovs
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+    verbs:
+      - get
+  - apiGroups:
+      - apps
+    resources:
+      - controllerrevisions
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ovn-ovs
+roleRef:
+  name: system:ovn-ovs
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: ovn-ovs
+    namespace: kube-system
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -19,75 +60,132 @@ metadata:
     rbac.authorization.k8s.io/system-only: "true"
   name: system:ovn
 rules:
-  - apiGroups: ['policy']
-    resources: ['podsecuritypolicies']
-    verbs:     ['use']
-    resourceNames:
-      - kube-ovn
   - apiGroups:
       - "kubeovn.io"
     resources:
       - vpcs
       - vpcs/status
       - vpc-nat-gateways
+      - vpc-nat-gateways/status
       - subnets
       - subnets/status
+      - ippools
+      - ippools/status
       - ips
+      - vips
+      - vips/status
       - vlans
       - vlans/status
       - provider-networks
       - provider-networks/status
       - security-groups
       - security-groups/status
-      - htbqoses
+      - iptables-eips
+      - iptables-fip-rules
+      - iptables-dnat-rules
+      - iptables-snat-rules
+      - iptables-eips/status
+      - iptables-fip-rules/status
+      - iptables-dnat-rules/status
+      - iptables-snat-rules/status
+      - ovn-eips
+      - ovn-fips
+      - ovn-snat-rules
+      - ovn-eips/status
+      - ovn-fips/status
+      - ovn-snat-rules/status
+      - ovn-dnat-rules
+      - ovn-dnat-rules/status
+      - switch-lb-rules
+      - switch-lb-rules/status
+      - vpc-dnses
+      - vpc-dnses/status
+      - qos-policies
+      - qos-policies/status
     verbs:
       - "*"
   - apiGroups:
       - ""
     resources:
       - pods
-      - pods/exec
       - namespaces
-      - nodes
-      - configmaps
     verbs:
-      - create
       - get
       - list
+      - patch
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
       - patch
       - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
   - apiGroups:
       - "k8s.cni.cncf.io"
     resources:
       - network-attachment-definitions
     verbs:
-      - create
-      - delete
       - get
-      - list
-      - update
   - apiGroups:
       - ""
       - networking.k8s.io
-      - apps
-      - extensions
     resources:
       - networkpolicies
-      - services
-      - endpoints
-      - statefulsets
-      - daemonsets
-      - deployments
-      - deployments/scale
+      - configmaps
     verbs:
-      - create
-      - delete
-      - update
-      - patch
       - get
       - list
       - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - services/status
+    verbs:
+      - get
+      - list
+      - update
+      - create
+      - delete
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - create
+      - update
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+      - deployments
+      - deployments/scale
+    verbs:
+      - get
+      - list
+      - create
+      - delete
+      - update
   - apiGroups:
       - ""
     resources:
@@ -97,15 +195,11 @@ rules:
       - patch
       - update
   - apiGroups:
-      - "k8s.cni.cncf.io"
+      - coordination.k8s.io
     resources:
-      - network-attachment-definitions
+      - leases
     verbs:
-      - create
-      - delete
-      - get
-      - list
-      - update
+      - "*"
   - apiGroups:
       - "kubevirt.io"
     resources:
@@ -114,6 +208,18 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -123,6 +229,20 @@ roleRef:
   name: system:ovn
   kind: ClusterRole
   apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: ovn
+    namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ovn
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
 subjects:
   - kind: ServiceAccount
     name: ovn
@@ -140,7 +260,7 @@ spec:
       port: 6641
       targetPort: 6641
   type: ClusterIP
-{% if enable_dual_stack_networks %}
+{% if ipv6_stack %}
   ipFamilyPolicy: PreferDualStack
 {% endif %}
   selector:
@@ -160,7 +280,7 @@ spec:
       port: 6642
       targetPort: 6642
   type: ClusterIP
-{% if enable_dual_stack_networks %}
+{% if ipv6_stack %}
   ipFamilyPolicy: PreferDualStack
 {% endif %}
   selector:
@@ -180,7 +300,7 @@ spec:
       port: 6643
       targetPort: 6643
   type: ClusterIP
-{% if enable_dual_stack_networks %}
+{% if ipv6_stack %}
   ipFamilyPolicy: PreferDualStack
 {% endif %}
   selector:
@@ -214,7 +334,12 @@ spec:
         type: infra
     spec:
       tolerations:
-      - operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -223,7 +348,7 @@ spec:
                   app: ovn-central
               topologyKey: kubernetes.io/hostname
       priorityClassName: system-cluster-critical
-      serviceAccountName: ovn
+      serviceAccountName: ovn-ovs
       hostNetwork: true
       containers:
         - name: ovn-central
@@ -232,10 +357,14 @@ spec:
           command: ["/kube-ovn/start-db.sh"]
           securityContext:
             capabilities:
-              add: ["SYS_NICE"]
+              add:
+                - NET_BIND_SERVICE
+                - SYS_NICE
           env:
             - name: ENABLE_SSL
               value: "{{ kube_ovn_enable_ssl | lower }}"
+            - name: NODE_IPS
+              value: "{{ kube_ovn_central_ips }}"
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -248,6 +377,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: POD_IPS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIPs
+            - name: ENABLE_BIND_LOCAL_IP
+              value: "{{ kube_ovn_bind_local_ip_enabled }}"
+            - name: PROBE_INTERVAL
+              value: "180000"
+            - name: OVN_NORTHD_PROBE_INTERVAL
+              value: "5000"
+            - name: OVN_LEADER_PROBE_INTERVAL
+              value: "5"
           resources:
             requests:
               cpu: {{ kube_ovn_db_cpu_request }}
@@ -279,7 +420,7 @@ spec:
             exec:
               command:
                 - bash
-                - /kube-ovn/ovn-is-leader.sh
+                - /kube-ovn/ovn-healthcheck.sh
             periodSeconds: 15
             timeoutSeconds: 45
           livenessProbe:
@@ -337,7 +478,10 @@ spec:
     matchLabels:
       app: ovs
   updateStrategy:
-    type: OnDelete
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -346,9 +490,14 @@ spec:
         type: infra
     spec:
       tolerations:
-      - operator: Exists
-      priorityClassName: system-cluster-critical
-      serviceAccountName: ovn
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
+      priorityClassName: system-node-critical
+      serviceAccountName: ovn-ovs
       hostNetwork: true
       hostPID: true
       containers:
@@ -359,7 +508,13 @@ spec:
           command: [{% if kube_ovn_dpdk_enabled %}"/kube-ovn/start-ovs-dpdk.sh"{% else %}"/kube-ovn/start-ovs.sh"{% endif %}]
           securityContext:
             runAsUser: 0
-            privileged: true
+            privileged: false
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_BIND_SERVICE
+                - SYS_MODULE
+                - SYS_NICE
           env:
             - name: ENABLE_SSL
               value: "{{ kube_ovn_enable_ssl | lower }}"
@@ -367,6 +522,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 {% if not kube_ovn_dpdk_enabled %}
             - name: HW_OFFLOAD
               value: "{{ kube_ovn_hw_offload | string | lower }}"
@@ -377,7 +540,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: OVN_DB_IPS
+              value: "{{ kube_ovn_central_ips }}"
           volumeMounts:
+            - mountPath: /var/run/netns
+              name: host-ns
+              mountPropagation: HostToContainer
             - mountPath: /lib/modules
               name: host-modules
               readOnly: true
@@ -408,6 +576,9 @@ spec:
               name: localtime
             - mountPath: /var/run/tls
               name: kube-ovn-tls
+            - mountPath: /var/run/containerd
+              name: cruntime
+              readOnly: true
           readinessProbe:
             exec:
               command:
@@ -428,7 +599,7 @@ spec:
 {% else %}
                 - /kube-ovn/ovs-healthcheck.sh
 {% endif %}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 60
             periodSeconds: 5
             failureThreshold: 5
             timeoutSeconds: 45
@@ -464,6 +635,9 @@ spec:
         - name: host-sys
           hostPath:
             path: /sys
+        - name: host-ns
+          hostPath:
+            path: /var/run/netns
         - name: cni-conf
           hostPath:
             path: /etc/cni/net.d
@@ -491,6 +665,9 @@ spec:
         - name: localtime
           hostPath:
             path: /etc/localtime
+        - name: cruntime
+          hostPath:
+            path: /var/run/containerd
         - name: kube-ovn-tls
           secret:
             optional: true
