@@ -4,7 +4,7 @@
   "dependencies": {
     "express": "^4.16.2",
     "jquery": "^3.5.0",
-    "jquery-ui": "^1.12.1",
+    "jquery-ui": "^1.13.2",
     "socket.io": "^2.0.4"
   },
   "repository": {
