@@ -2,7 +2,7 @@
 
 #!/bin/bash
 
-USER_NAME="gitlab-runner"
+USER_NAME="USERNAME"
 NAMESPACE="default"
 CSR_NAME="${USER_NAME}-csr"
 CERT_FILE="${USER_NAME}.crt"
