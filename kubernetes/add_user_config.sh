@@ -1,3 +1,5 @@
+# Скрипт создания конфига для пользователя в Kubernetes
+
 #!/bin/bash
 
 USER_NAME="gitlab-runner"
